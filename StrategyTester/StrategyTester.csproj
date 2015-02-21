@@ -56,7 +56,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RepositoryAnalyzer.cs" />
+    <Compile Include="ExtremumStrategy.cs" />
+    <Compile Include="ProbabilityAnalyzer.cs" />
     <Compile Include="Types\Candle.cs" />
     <Compile Include="HistoryRepository.cs" />
     <Compile Include="Program.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Types\Day.cs" />
     <Compile Include="Types\Tick.cs" />
     <Compile Include="TradesResult.cs" />
+    <Compile Include="Types\Utils.cs" />
     <Compile Include="UniformDeviationStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
