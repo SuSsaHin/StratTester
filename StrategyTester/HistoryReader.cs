@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using StrategyTester.Types;
@@ -37,7 +38,7 @@ namespace StrategyTester
 
 			var dateTime = ParseDateTime(fields[0], fields[1]);
 
-			var nextTick = new Tick(dateTime, (int)decimal.Parse(fields[2]));
+			var nextTick = new Tick(dateTime, (int)decimal.Parse(fields[2], new CultureInfo("en-us")));
 			return nextTick;
 		}
 

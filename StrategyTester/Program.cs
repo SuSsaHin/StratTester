@@ -13,8 +13,8 @@ namespace StrategyTester
 		static void Main(string[] args)
 		{
 			//var repository = new HistoryRepository(ToolName, true);
-			var repository = new HistoryRepository("RTS-3.14", false);
-			//var repository = new HistoryRepository("RTSI-3.15", false);
+			var repository = new HistoryRepository("RTS-14", false);
+			//var repository = new HistoryRepository("RTS-3.15", false);
 
 			Console.WriteLine(repository.Days.Count);
 
@@ -27,18 +27,24 @@ namespace StrategyTester
 		{
 			var strat = new ExtremumStrategy();
 
-			/*for (int averageCount = 2; averageCount < 20; averageCount++)
+			for (int averageCount = 10; averageCount <= 10; averageCount++)
 			{
-				var result = strat.Run(repository.Days, 1000, averageCount);
-				Console.WriteLine(averageCount);
-				Console.WriteLine(result);
+				for (int stop = 000; stop <= 1500; stop += 100)
+				{
+					var result = strat.Run(repository.Days, stop, averageCount);
+					result.PrintDepo(@"depo\" + averageCount + "_" + stop + ".txt");
+				}
+				//Console.WriteLine(averageCount);
+				//Console.WriteLine(result);
+				//File.WriteAllLines("ext.txt", strat.SExtremums);
 				//result.PrintDeals();
-			}*/
+			}
 
-			var result = strat.Run(repository.Days, 1000, 1);
+			/*var result = strat.Run(repository.Days, 1000, 10);
+			Console.WriteLine(result);
 			result.PrintDeals("out.txt");
 			result.PrintDepo("depo.txt");
-			File.WriteAllLines("ext.txt", strat.SExtremums);
+			File.WriteAllLines("ext.txt", strat.SExtremums);*/
 		}
 
 		private static void TestTrandInvertion(HistoryRepository repository)

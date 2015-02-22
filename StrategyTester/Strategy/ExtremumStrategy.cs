@@ -22,6 +22,8 @@ namespace StrategyTester.Strategy
 			}
 		}
 
+		private const int spread = 30;
+
 		public List<string> SExtremums = new List<string>(); 
 			
 		private static bool IsTrendLong(List<Day> days, Func<Candle, int> getTrendSource)
@@ -32,20 +34,31 @@ namespace StrategyTester.Strategy
 			//return days[days.Count - 1].Params.Close > days.First().Params.Open;
 		}
 
-		private static List<Extremum> FindFirstExtremums(List<Candle> candles, bool isMinimum)
+		private static List<Extremum> FindFirstExtremumsBad(List<Candle> candles, bool isMinimum)
 		{
 			var exremums = new List<Extremum>();
 			for (int leftIndex = 1; leftIndex < candles.Count - 2; ++leftIndex)
 			{
-				if (candles[leftIndex - 1].High < candles[leftIndex].High & candles[leftIndex + 1].High < candles[leftIndex].High)
+				if (!isMinimum && candles[leftIndex - 1].High < candles[leftIndex].High && candles[leftIndex + 1].High < candles[leftIndex].High)
 				{
-					if (candles[leftIndex - 1].Low < candles[leftIndex].Low & candles[leftIndex + 1].Low < candles[leftIndex].Low)
+					if (candles[leftIndex - 1].Low < candles[leftIndex].Low && candles[leftIndex + 1].Low < candles[leftIndex].Low)
 					{
 						exremums.Add(new Extremum(candles[leftIndex].High, leftIndex + 1, candles[leftIndex].Date + candles[leftIndex].Time));
 					}
-					else if (candles[leftIndex - 1].Low < candles[leftIndex].Low & candles[leftIndex + 2].Low < candles[leftIndex].Low & candles[leftIndex + 2].High < candles[leftIndex].High)
+					else if (candles[leftIndex - 1].Low < candles[leftIndex].Low && candles[leftIndex + 2].Low < candles[leftIndex].Low && candles[leftIndex + 2].High < candles[leftIndex].High)
 					{
 						exremums.Add(new Extremum(candles[leftIndex].High, leftIndex + 2, candles[leftIndex].Date + candles[leftIndex].Time));
+					}
+				}
+				else if (isMinimum && candles[leftIndex - 1].Low > candles[leftIndex].Low && candles[leftIndex + 1].Low > candles[leftIndex].Low)
+				{
+					if (candles[leftIndex - 1].High > candles[leftIndex].High && candles[leftIndex + 1].High > candles[leftIndex].High)
+					{
+						exremums.Add(new Extremum(candles[leftIndex].Low, leftIndex + 1, candles[leftIndex].Date + candles[leftIndex].Time));
+					}
+					else if (candles[leftIndex - 1].High > candles[leftIndex].High && candles[leftIndex + 2].High > candles[leftIndex].High && candles[leftIndex + 2].Low > candles[leftIndex].Low)
+					{
+						exremums.Add(new Extremum(candles[leftIndex].Low, leftIndex + 2, candles[leftIndex].Date + candles[leftIndex].Time));
 					}
 				}
 			}
@@ -53,7 +66,7 @@ namespace StrategyTester.Strategy
 			return exremums;
 		}
 
-		private static List<Extremum> FindFirstExtremums0(List<Candle> candles, bool isMinimum)
+		private static List<Extremum> FindFirstExtremums(List<Candle> candles, bool isMinimum)
 		{
 			var exremums = new List<Extremum>();
 			for (int leftIndex = 0; leftIndex < candles.Count; ++leftIndex)
@@ -94,7 +107,7 @@ namespace StrategyTester.Strategy
 				    !isMinimum && currentValue > firstExtremums[i - 1].Value &&
 				    currentValue > firstExtremums[i + 1].Value)
 				{
-					exremums.Add(new Extremum(currentValue, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date));	
+					exremums.Add(new Extremum(firstExtremums[i + 1].Value, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date));	
 				}
 			}
 
@@ -123,9 +136,8 @@ namespace StrategyTester.Strategy
 			return result;
 		}
 
-		private int GetDaysDeal(List<Candle> daysCandles, bool isTrendLong, int stopLoss)	//TODO вынести функцию FindExtremum(isMinimum)
+		private int GetDaysDeal(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
 		{
-			isTrendLong = false;
 			var firstExtremums = FindFirstExtremums(daysCandles, isTrendLong);
 			var secondExtremums = FindSecondExtremums(firstExtremums, isTrendLong);
 			int result = 0;
@@ -133,15 +145,15 @@ namespace StrategyTester.Strategy
 			if (!secondExtremums.Any())
 				return 0;
 
-			SExtremums.AddRange(secondExtremums.Select(ex => ex.Date.ToString() + " " + ex.Value.ToString()));
+			//SExtremums.AddRange(secondExtremums.Select(ex => ex.Date.ToString() + " " + ex.Value.ToString()));
 
 			var startIndex = secondExtremums.First().CheckerIndex;
 			var startCandle = daysCandles[startIndex];
 
 			var startPrice = startCandle.Close;
 
-			if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low < startPrice - stopLoss) ||
-			    !isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High > startPrice + stopLoss))
+			if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
+			    !isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
 				return -stopLoss;
 
 			result = isTrendLong
@@ -151,7 +163,34 @@ namespace StrategyTester.Strategy
 			return result;
 		}
 
-		private int GetDaysDeal0(List<Candle> daysCandles, bool isTrendLong, int stopLoss)	//TODO вынести функцию FindExtremum(isMinimum)
+		private int GetDaysDeal0(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
+		{
+			var firstExtremums = FindFirstExtremums(daysCandles, isTrendLong);
+			var secondExtremums = FindSecondExtremums(firstExtremums, isTrendLong);
+			int result = 0;
+
+			if (!secondExtremums.Any())
+				return 0;
+
+			//SExtremums.AddRange(secondExtremums.Select(ex => ex.Date.ToString() + " " + ex.Value.ToString()));
+
+			var startIndex = secondExtremums.First().CheckerIndex;
+			var startCandle = daysCandles[startIndex];
+
+			var startPrice = secondExtremums.First().Value;//startCandle.Close;
+
+			if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
+				!isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
+				return -stopLoss;
+
+			result = isTrendLong
+				? daysCandles[daysCandles.Count - 1].Close - startPrice
+				: startPrice - daysCandles[daysCandles.Count - 1].Close;
+
+			return result;
+		}
+
+		private int GetDaysDealExtrOut(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
 		{
 			var firstTrendExtremums = FindFirstExtremums(daysCandles, isTrendLong);
 			var secondTrendExtremums = FindSecondExtremums(firstTrendExtremums, isTrendLong);
