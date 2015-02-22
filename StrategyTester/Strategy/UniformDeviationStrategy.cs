@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StrategyTester.Types;
 
-namespace StrategyTester
+namespace StrategyTester.Strategy
 {
 	class UniformDeviationStrategy
 	{

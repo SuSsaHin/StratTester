@@ -8,7 +8,63 @@ namespace StrategyTester
 {
 	class HistoryReader
 	{
-		public static List<Tick> ReadTicks(string filename, uint startTime = 0, uint endTime = int.MaxValue)
+		private const string dataPath = @"..\..\History\";
+		private const string ticksDirectory = @"Ticks";
+		private const string candlesDirectory = @"Candles";
+		private const string filesExtension = ".txt";
+		
+		private static DateTime ParseDateTime(string dateStr, string timeStr)
+		{
+			var time = int.Parse(timeStr);
+			var date = int.Parse(dateStr);
+
+			var second = time % 100;
+			time /= 100;
+			var minute = time % 100;
+			var hour = time / 100;
+
+			var day = date % 100;
+			date /= 100;
+			var month = date % 100;
+			var year = date / 100;
+
+			return new DateTime(year, month, day, hour, minute, second);
+		}
+
+		private static Tick ParseTick(string row)
+		{
+			var fields = row.Split('\t');
+
+			var dateTime = ParseDateTime(fields[0], fields[1]);
+
+			var nextTick = new Tick(dateTime, (int)decimal.Parse(fields[2]));
+			return nextTick;
+		}
+
+		private static Candle ParseCandle(string row)
+		{
+			var fields = row.Split('\t');
+			var candle = new Candle(ParseDateTime(fields[0], fields[1]),
+									(int)decimal.Parse(fields[2]),
+									(int)decimal.Parse(fields[3]),
+									(int)decimal.Parse(fields[4]),
+									(int)decimal.Parse(fields[5]),
+									5);
+			return candle;
+		}
+
+		public static string[] GetTicksFiles(string toolName)
+		{
+			var path = Path.Combine(dataPath, ticksDirectory, toolName);
+			var files = Directory.GetFiles(path, "*" + filesExtension);
+
+			if (!files.Any())
+				throw new Exception("Empty history");
+
+			return files;
+		}
+
+		public static List<Tick> ReadTicks(string filename)
 		{
 			var readed = File.ReadAllLines(filename);
 			var result = new List<Tick>();
@@ -16,26 +72,7 @@ namespace StrategyTester
 
 			foreach (var row in readed)
 			{
-				var fields = row.Split('\t', '.');
-
-				var time = int.Parse(fields[1]);
-				if (time < startTime || time > endTime)
-					continue;
-
-				var second = time % 100;
-				time /= 100;
-				var minute = time%100;
-				var hour = time / 100;
-
-				var date = int.Parse(fields[0]);
-				var day = date%100;
-				date /= 100;
-				var month = date%100;
-				var year = date / 100;
-
-				var dateTime = new DateTime(year, month, day, hour, minute, second);
-
-				var nextTick = new Tick(dateTime, int.Parse(fields[2]));
+				var nextTick = ParseTick(row);
 
 				if (nextTick.Equals(lastTick))
 					continue;
@@ -43,6 +80,37 @@ namespace StrategyTester
 				lastTick = nextTick;
 				result.Add(nextTick);
 			}
+
+			return result;
+		}
+
+		public static List<Day> ReadCandles(string toolName, int periodMins, uint startTime = 0, uint endTime = int.MaxValue)
+		{
+			var filename = Path.Combine(dataPath, candlesDirectory, toolName) + filesExtension;
+
+			var readed = File.ReadAllLines(filename);
+			var result = new List<Day>();
+			var lastDate = new DateTime();
+			var candles = new List<Candle>();
+
+			foreach (var row in readed)
+			{
+				var candle = ParseCandle(row);
+
+				if (!candles.Any())
+				{
+					lastDate = candle.Date;
+				}
+
+				if (lastDate.Date != candle.Date)
+				{
+					result.Add(new Day(candles));
+					candles = new List<Candle>();
+					lastDate = candle.Date;
+				}
+				candles.Add(candle);
+			}
+			result.Add(new Day(candles));
 
 			return result;
 		}

@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using StrategyTester.Strategy;
 using StrategyTester.Types;
 
 namespace StrategyTester
 {
 	class Program
 	{
+		public const string ToolName = @"SBER-3.15";
+
 		static void Main(string[] args)
 		{
-			var repository = new HistoryRepository();
+			//var repository = new HistoryRepository(ToolName, true);
+			var repository = new HistoryRepository("RTS-3.14", false);
+			//var repository = new HistoryRepository("RTSI-3.15", false);
+
 			Console.WriteLine(repository.Days.Count);
 
 			//OptimizeFiles();
@@ -22,8 +26,19 @@ namespace StrategyTester
 		private static void TestExtremums(HistoryRepository repository)
 		{
 			var strat = new ExtremumStrategy();
-			var result = strat.Run(repository.Days, 10000);
-			Console.WriteLine(result);
+
+			/*for (int averageCount = 2; averageCount < 20; averageCount++)
+			{
+				var result = strat.Run(repository.Days, 1000, averageCount);
+				Console.WriteLine(averageCount);
+				Console.WriteLine(result);
+				//result.PrintDeals();
+			}*/
+
+			var result = strat.Run(repository.Days, 1000, 1);
+			result.PrintDeals("out.txt");
+			result.PrintDepo("depo.txt");
+			File.WriteAllLines("ext.txt", strat.SExtremums);
 		}
 
 		private static void TestTrandInvertion(HistoryRepository repository)

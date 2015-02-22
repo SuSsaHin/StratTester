@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using StrategyTester.Types;
 
-namespace StrategyTester.Types
+namespace StrategyTester.Utils
 {
 	static class Utils
 	{

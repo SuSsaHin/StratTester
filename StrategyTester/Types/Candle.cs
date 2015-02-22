@@ -10,8 +10,27 @@ namespace StrategyTester.Types
 		{
 			PeriodMins = periodMins;
 			Ticks = ticks;
+			dateTime = ticks.First().Date + ticks.First().Time;
 
 			InitParams();
+		}
+
+		public Candle(DateTime dateTime, int open, int hight, int low, int close, int periodMins)
+		{
+			Open = open;
+			High = hight;
+			Low = low;
+			Close = close;
+
+			/*if (hight < low || hight < open || hight < close ||
+			    low > open || low > close)
+			{
+				int a = 0;
+			}*/
+
+			PeriodMins = periodMins;
+			this.dateTime = dateTime;
+			Ticks = new List<Tick>();
 		}
 
 		private void InitParams()
@@ -49,6 +68,8 @@ namespace StrategyTester.Types
 
 		public int PeriodMins { get; private set; }
 
+		private DateTime dateTime;
+
 		public bool IsLong
 		{
 			get { return Close > Open; }
@@ -56,12 +77,12 @@ namespace StrategyTester.Types
 
 		public DateTime Date
 		{
-			get { return Ticks.First().Date; }
+			get { return dateTime.Date; }
 		}
 
 		public TimeSpan Time
 		{
-			get { return Ticks.First().Time; }
+			get { return dateTime.TimeOfDay; }
 		}
 	}
 }
