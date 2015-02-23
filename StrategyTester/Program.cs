@@ -27,9 +27,9 @@ namespace StrategyTester
 		{
 			var strat = new ExtremumStrategy();
 
-			for (int averageCount = 10; averageCount <= 10; averageCount++)
+			for (int averageCount = 6; averageCount <= 15; averageCount++)
 			{
-				for (int stop = 000; stop <= 1500; stop += 100)
+				for (int stop = 300; stop <= 1000; stop += 100)
 				{
 					var result = strat.Run(repository.Days, stop, averageCount);
 					result.PrintDepo(@"depo\" + averageCount + "_" + stop + ".txt");

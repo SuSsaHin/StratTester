@@ -107,7 +107,7 @@ namespace StrategyTester.Strategy
 				    !isMinimum && currentValue > firstExtremums[i - 1].Value &&
 				    currentValue > firstExtremums[i + 1].Value)
 				{
-					exremums.Add(new Extremum(firstExtremums[i + 1].Value, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date));	
+					exremums.Add(new Extremum(currentValue, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date));	
 				}
 			}
 
@@ -163,33 +163,6 @@ namespace StrategyTester.Strategy
 			return result;
 		}
 
-		private int GetDaysDeal0(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
-		{
-			var firstExtremums = FindFirstExtremums(daysCandles, isTrendLong);
-			var secondExtremums = FindSecondExtremums(firstExtremums, isTrendLong);
-			int result = 0;
-
-			if (!secondExtremums.Any())
-				return 0;
-
-			//SExtremums.AddRange(secondExtremums.Select(ex => ex.Date.ToString() + " " + ex.Value.ToString()));
-
-			var startIndex = secondExtremums.First().CheckerIndex;
-			var startCandle = daysCandles[startIndex];
-
-			var startPrice = secondExtremums.First().Value;//startCandle.Close;
-
-			if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
-				!isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
-				return -stopLoss;
-
-			result = isTrendLong
-				? daysCandles[daysCandles.Count - 1].Close - startPrice
-				: startPrice - daysCandles[daysCandles.Count - 1].Close;
-
-			return result;
-		}
-
 		private int GetDaysDealExtrOut(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
 		{
 			var firstTrendExtremums = FindFirstExtremums(daysCandles, isTrendLong);
@@ -210,8 +183,8 @@ namespace StrategyTester.Strategy
 			int endIndex = endExtremum == null ? daysCandles.Count - 1 : endExtremum.CheckerIndex;
 			var endCandle = daysCandles[endIndex];
 
-			if (isTrendLong && daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.Low < startPrice - stopLoss) ||
-				!isTrendLong && daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.High > startPrice + stopLoss))
+			if (isTrendLong && daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.Low <= startPrice - stopLoss + spread)||
+				!isTrendLong && daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
 				return -stopLoss;
 
 			result = isTrendLong

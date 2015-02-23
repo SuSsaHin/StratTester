@@ -6,6 +6,8 @@ namespace StrategyTester.Types
 {
 	class TradesResult
 	{
+		private const int comission = 10;
+
 		private List<int> deals = new List<int>();
 		public int GoodCount;
 		public int BadCount;
@@ -22,6 +24,7 @@ namespace StrategyTester.Types
 
 		public void AddDeal(int dealResult)
 		{
+			dealResult -= comission;
 			if (dealResult > 0)
 			{
 				GoodCount++;
