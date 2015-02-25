@@ -46,10 +46,10 @@ namespace StrategyTester
 		{
 			var fields = row.Split('\t');
 			var candle = new Candle(ParseDateTime(fields[0], fields[1]),
-									(int)decimal.Parse(fields[2]),
-									(int)decimal.Parse(fields[3]),
-									(int)decimal.Parse(fields[4]),
-									(int)decimal.Parse(fields[5]),
+									(int)decimal.Parse(fields[2], new CultureInfo("en-us")),
+									(int)decimal.Parse(fields[3], new CultureInfo("en-us")),
+									(int)decimal.Parse(fields[4], new CultureInfo("en-us")),
+									(int)decimal.Parse(fields[5], new CultureInfo("en-us")),
 									5);
 			return candle;
 		}

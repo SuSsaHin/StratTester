@@ -12,34 +12,65 @@ namespace StrategyTester
 
 		static void Main(string[] args)
 		{
-			//var repository = new HistoryRepository(ToolName, true);
+			//TestTrend();
 			var repository = new HistoryRepository("RTS-14", false);
-			//var repository = new HistoryRepository("RTS-3.15", false);
 
 			Console.WriteLine(repository.Days.Count);
 
-			//OptimizeFiles();
 			TestExtremums(repository);
 			Console.ReadLine();
+		}
+
+		private static void TestFuzzy()
+		{
+			for (int len = 10; len <= 24; len += 2)
+			{
+				for (int krfu = 3; krfu <= 20; ++krfu)
+				{
+					try
+					{
+						Console.WriteLine("{0} {1}: {2}", len, krfu, TrendPredictorTester.TestFuzzy("closes.txt", "pred_" + len + "_" + krfu + ".txt", len));
+					}
+					catch (Exception e)
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		private static void TestTrend()
+		{
+			for (int averageCount = 1; averageCount < 20; ++averageCount)
+			{
+				for (int shortAverageCount = 1; shortAverageCount < averageCount; ++shortAverageCount)
+				{
+					Console.WriteLine("{0} {1}: {2}", averageCount, shortAverageCount, TrendPredictorTester.TestAverage("closes.txt", averageCount, shortAverageCount));
+				}
+			}
 		}
 
 		private static void TestExtremums(HistoryRepository repository)
 		{
 			var strat = new ExtremumStrategy();
+			var resultText = new List<string>();
 
 			for (int averageCount = 6; averageCount <= 15; averageCount++)
 			{
-				for (int stop = 300; stop <= 1000; stop += 100)
+				for (int stop = 400; stop <= 1000; stop += 100)
 				{
 					var result = strat.Run(repository.Days, stop, averageCount);
 					result.PrintDepo(@"depo\" + averageCount + "_" + stop + ".txt");
+
+					resultText.Add("AC: " + averageCount + "; stop: " + stop);
+					resultText.Add(result.ToString());
 				}
 				//Console.WriteLine(averageCount);
 				//Console.WriteLine(result);
 				//File.WriteAllLines("ext.txt", strat.SExtremums);
 				//result.PrintDeals();
 			}
-
+			File.WriteAllLines("out.txt", resultText);
 			/*var result = strat.Run(repository.Days, 1000, 10);
 			Console.WriteLine(result);
 			result.PrintDeals("out.txt");

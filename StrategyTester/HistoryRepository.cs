@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using StrategyTester.Types;
 
@@ -28,6 +29,11 @@ namespace StrategyTester
 			}
 
 			ReadCandles(toolName);
+		}
+
+		public void PrintDaysClose(string filename)
+		{
+			File.WriteAllLines(filename, Days.Select(d => d.Params.Close.ToString()));
 		}
 
 		private void ReadCandles(string toolName)

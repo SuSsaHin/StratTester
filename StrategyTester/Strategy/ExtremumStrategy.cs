@@ -120,17 +120,70 @@ namespace StrategyTester.Strategy
 			var averageSource = days.Take(averageCount).ToList();
 			days = days.Skip(averageCount).ToList();
 
+			//int successCount = 0, longCount = 0, shortCount = 0;
+
 			foreach (var day in days)
 			{
 				bool isTrendLong = IsTrendLong(averageSource, d => d.Close);
 				averageSource.Add(day);
 				averageSource.RemoveAt(0);
 
+				/*if (day.Params.IsLong && isTrendLong)
+				{
+					longCount++;
+				}
+				else if (!day.Params.IsLong && !isTrendLong)
+				{
+					shortCount++;
+				}*/
+
+
 				var profit = GetDaysDeal(day.FiveMins, isTrendLong, stopLoss);
 				if (profit == 0)
 					continue;
 
 				result.AddDeal(profit);
+				/*var profits = GetDaysDeals(day.FiveMins, isTrendLong, stopLoss);
+
+				foreach (var profit in profits)
+				{
+					result.AddDeal(profit);	
+				}*/
+			}
+
+			return result;
+		}
+
+		private List<int> GetDaysDeals(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
+		{
+			var firstExtremums = FindFirstExtremums(daysCandles, isTrendLong);
+			var secondExtremums = FindSecondExtremums(firstExtremums, isTrendLong);
+			var result = new List<int>();
+
+			while (secondExtremums.Any())
+			{
+				var startIndex = secondExtremums.First().CheckerIndex;
+				var startCandle = daysCandles[startIndex];
+
+				var startPrice = startCandle.Close;
+
+				int index = isTrendLong
+					? daysCandles.FindIndex(startIndex, c => c.Low <= startPrice - stopLoss + spread)
+					: daysCandles.FindIndex(startIndex, c => c.High >= startPrice + stopLoss - spread);
+
+				if (index != -1)
+				{
+					result.Add(-stopLoss);
+					secondExtremums = secondExtremums.SkipWhile(ex => ex.CheckerIndex <= index).ToList();
+					continue;
+				}
+
+				int currentResult = isTrendLong
+					? daysCandles[daysCandles.Count - 1].Close - startPrice
+					: startPrice - daysCandles[daysCandles.Count - 1].Close;
+
+				result.Add(currentResult);
+				break;
 			}
 
 			return result;
@@ -153,7 +206,7 @@ namespace StrategyTester.Strategy
 			var startPrice = startCandle.Close;
 
 			if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
-			    !isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
+				!isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
 				return -stopLoss;
 
 			result = isTrendLong
@@ -163,33 +216,49 @@ namespace StrategyTester.Strategy
 			return result;
 		}
 
-		private int GetDaysDealExtrOut(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
+		private List<int> GetDaysDealsExtrOut(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
 		{
 			var firstTrendExtremums = FindFirstExtremums(daysCandles, isTrendLong);
 			var secondTrendExtremums = FindSecondExtremums(firstTrendExtremums, isTrendLong);
-			int result = 0;
-
-			if (!secondTrendExtremums.Any())
-				return 0;
 
 			var firstUntrendExtremums = FindFirstExtremums(daysCandles, !isTrendLong);
 			var secondUntrendExtremums = FindSecondExtremums(firstUntrendExtremums, !isTrendLong);
 
-			var startIndex = secondTrendExtremums.First().CheckerIndex;
-			var startCandle = daysCandles[startIndex];
-			var startPrice = startCandle.Close;
+			var result = new List<int>();
 
-			var endExtremum = secondUntrendExtremums.FirstOrDefault(e => e.CheckerIndex > startIndex);
-			int endIndex = endExtremum == null ? daysCandles.Count - 1 : endExtremum.CheckerIndex;
-			var endCandle = daysCandles[endIndex];
+			while (secondTrendExtremums.Any())
+			{
+				int currentResult = 0;
 
-			if (isTrendLong && daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.Low <= startPrice - stopLoss + spread)||
-				!isTrendLong && daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
-				return -stopLoss;
+				var startIndex = secondTrendExtremums.First().CheckerIndex;
+				var startCandle = daysCandles[startIndex];
+				var startPrice = startCandle.Close;
 
-			result = isTrendLong
-				? endCandle.Close - startPrice
-				: startPrice - endCandle.Close;
+				secondUntrendExtremums = secondUntrendExtremums.SkipWhile(ex => ex.CheckerIndex <= startIndex).ToList();
+
+				var endExtremum = secondUntrendExtremums.FirstOrDefault();
+				int endIndex = endExtremum == null ? daysCandles.Count - 1 : endExtremum.CheckerIndex;
+				var endCandle = daysCandles[endIndex];
+
+				if (isTrendLong &&
+				    daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
+				    !isTrendLong &&
+				    daysCandles.Skip(startIndex).Take(endIndex - startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
+				{
+					currentResult = -stopLoss;
+					result.Add(currentResult);
+					break;
+				}
+				
+				currentResult = isTrendLong
+					? endCandle.Close - startPrice
+					: startPrice - endCandle.Close;
+
+				secondTrendExtremums = secondTrendExtremums.SkipWhile(ex => ex.CheckerIndex <= endIndex).ToList();
+
+				result.Add(currentResult);
+				//break;
+			}
 
 			return result;
 		}
