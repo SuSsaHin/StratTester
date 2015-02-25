@@ -13,11 +13,12 @@ namespace StrategyTester
 		static void Main(string[] args)
 		{
 			//TestTrend();
-			var repository = new HistoryRepository("RTS-14", false);
+			var repository = new HistoryRepository("RTS-3.15", false);
+			//var repository = new HistoryRepository("RTS-14", false);
 
 			Console.WriteLine(repository.Days.Count);
 
-			TestExtremums(repository);
+			TestExtremums2(repository);
 			Console.ReadLine();
 		}
 
@@ -77,6 +78,24 @@ namespace StrategyTester
 			result.PrintDepo("depo.txt");
 			File.WriteAllLines("ext.txt", strat.SExtremums);*/
 		}
+
+		private static void TestExtremums2(HistoryRepository repository)
+		{
+			var strat = new ExtremumStrategy();
+			var resultText = new List<string>();
+
+			for (int stop = 400; stop <= 1800; stop += 100)
+			{
+				var result = strat.Run(repository.Days, stop);
+				result.PrintDepo(@"depo\" + stop + ".txt");
+
+				resultText.Add("stop: " + stop);
+				resultText.Add(result.ToString());
+			}		
+
+			File.WriteAllLines("out.txt", resultText);
+		}
+
 
 		private static void TestTrandInvertion(HistoryRepository repository)
 		{
