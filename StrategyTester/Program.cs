@@ -84,7 +84,7 @@ namespace StrategyTester
 			var strat = new ExtremumStrategy();
 			var resultText = new List<string>();
 
-			for (int stop = 400; stop <= 1800; stop += 100)
+			for (int stop = 400; stop <= 1000; stop += 100)
 			{
 				var result = strat.Run(repository.Days, stop);
 				result.PrintDepo(@"depo\" + stop + ".txt");

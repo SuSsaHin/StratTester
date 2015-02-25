@@ -65,10 +65,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HistoryReader.cs" />
     <Compile Include="Types\Day.cs" />
+    <Compile Include="Types\Deal.cs" />
     <Compile Include="Types\Tick.cs" />
     <Compile Include="Types\TradesResult.cs" />
     <Compile Include="Utils\Utils.cs" />
-    <Compile Include="Strategy\UniformDeviationStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

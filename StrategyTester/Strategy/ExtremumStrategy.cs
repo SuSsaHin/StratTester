@@ -139,7 +139,7 @@ namespace StrategyTester.Strategy
 
 
 				var profit = GetDaysDeal(day.FiveMins, isTrendLong, stopLoss);
-				if (profit == 0)
+				if (profit == null)
 					continue;
 
 				result.AddDeal(profit);
@@ -161,7 +161,7 @@ namespace StrategyTester.Strategy
 			foreach (var day in days)
 			{
 				var profit = GetDaysDeal(day.FiveMins, stopLoss);
-				if (profit == 0)
+				if (profit == null)
 					continue;
 
 				result.AddDeal(profit);
@@ -205,14 +205,14 @@ namespace StrategyTester.Strategy
 			return result;
 		}
 
-		private int GetDaysDeal(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
+		private Deal GetDaysDeal(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
 		{
 			var firstExtremums = FindFirstExtremums(daysCandles, isTrendLong);
 			var secondExtremums = FindSecondExtremums(firstExtremums, isTrendLong);
 			int result = 0;
 
 			if (!secondExtremums.Any())
-				return 0;
+				return null;
 
 			//SExtremums.AddRange(secondExtremums.Select(ex => ex.Date.ToString() + " " + ex.Value.ToString()));
 
@@ -223,16 +223,16 @@ namespace StrategyTester.Strategy
 
 			if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
 				!isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
-				return -stopLoss;
+				return new Deal(-stopLoss, isTrendLong);
 
 			result = isTrendLong
 				? daysCandles[daysCandles.Count - 1].Close - startPrice
 				: startPrice - daysCandles[daysCandles.Count - 1].Close;
 
-			return result;
+			return new Deal(result, isTrendLong);	//TODO Какой тренд сюда писать?
 		}
 
-		private int GetDaysDeal(List<Candle> daysCandles, int stopLoss)
+		private Deal GetDaysDeal(List<Candle> daysCandles, int stopLoss)
 		{
 			var firstLongExtremums = FindFirstExtremums(daysCandles, true);
 			var firstShortExtremums = FindFirstExtremums(daysCandles, false);
@@ -265,15 +265,15 @@ namespace StrategyTester.Strategy
 
 				if (isTrendLong && daysCandles.Skip(startIndex).Any(c => c.Low <= startPrice - stopLoss + spread) ||
 				    !isTrendLong && daysCandles.Skip(startIndex).Any(c => c.High >= startPrice + stopLoss - spread))
-					return -stopLoss;
+					return new Deal(-stopLoss, isTrendLong);
 
 				int result = isTrendLong
 					? daysCandles[daysCandles.Count - 1].Close - startPrice
 					: startPrice - daysCandles[daysCandles.Count - 1].Close;
 
-				return result;
+				return new Deal(result, isTrendLong);
 			}
-			return 0;
+			return null;
 		}
 
 		private List<int> GetDaysDealsExtrOut(List<Candle> daysCandles, bool isTrendLong, int stopLoss)
