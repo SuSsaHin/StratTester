@@ -13,8 +13,8 @@ namespace StrategyTester
 		static void Main(string[] args)
 		{
 			//TestTrend();
-			var repository = new HistoryRepository("RTS-3.15", false);
-			//var repository = new HistoryRepository("RTS-14", false);
+			//var repository = new HistoryRepository("RTS-3.15", false);
+			var repository = new HistoryRepository("RTS-14", false);
 
 			Console.WriteLine(repository.Days.Count);
 
