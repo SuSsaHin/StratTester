@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Strategy\SberStrategy.cs" />
     <Compile Include="TrendPredictorTester.cs" />
     <Compile Include="Strategy\ExtremumStrategy.cs" />
     <Compile Include="ProbabilityAnalyzer.cs" />
