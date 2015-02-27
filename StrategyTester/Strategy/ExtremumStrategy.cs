@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using StrategyTester.Types;
 using StrategyTester.Utils;
@@ -9,28 +8,20 @@ namespace StrategyTester.Strategy
 {
 	class ExtremumStrategy
 	{
-		private class Extremum
-		{
-			public readonly DateTime Date;
-			public int Value { get; private set; }
-			public int CheckerIndex { get; private set; }
-			public bool IsMinimum { get; private set; }
-
-			public Extremum(int value, int checkerIndex, DateTime date, bool isMinimum)
-			{
-				Date = date;
-				Value = value;
-				CheckerIndex = checkerIndex;
-				IsMinimum = isMinimum;
-			}
-		}
-
 		private const int spread = 30;
+		/*private int stopLoss;
+		private int pegTopSize;
+
+		public ExtremumStrategy(int stopLoss, int pegTopSize)
+		{
+			this.stopLoss = stopLoss;
+			this.pegTopSize = pegTopSize;
+		}*/
 
 		public TradesResult Run(List<Day> days, int stopLoss)
 		{
 			var result = new TradesResult();
-			
+
 			foreach (var day in days)
 			{
 				var profit = GetDaysDeal(day.FiveMins, stopLoss);
@@ -81,11 +72,11 @@ namespace StrategyTester.Strategy
 
 		private int CalculateStopLoss(int stopLoss, int startPrice, bool isTrendLong, Extremum extremum)
 		{
-			const double maxStopRatio = 1.5;
+			/*const double maxStopRatio = 1.5;
 			var dist = -GetProfit(isTrendLong, startPrice, extremum.Value) + spread;
 
 			if (dist > stopLoss && dist < stopLoss*maxStopRatio)
-				return dist;
+				return dist;*/
 
 			return stopLoss;
 		}
@@ -103,7 +94,7 @@ namespace StrategyTester.Strategy
 
 		private static List<Extremum> FindFirstExtremums(List<Candle> candles, bool isMinimum)
 		{
-			var exremums = new List<Extremum>();
+			var extremums = new List<Extremum>();
 			for (int leftIndex = 0; leftIndex < candles.Count; ++leftIndex)
 			{
 				var leftCandle = candles[leftIndex];
@@ -125,10 +116,17 @@ namespace StrategyTester.Strategy
 				if (isMinimum && midCandle.Low > rightCandle.Low || !isMinimum && midCandle.High < rightCandle.High)
 					continue;
 
-				exremums.Add(new Extremum(isMinimum ? midCandle.Low : midCandle.High, rightIndex, midCandle.Date + midCandle.Time, isMinimum));
+				var extremum = new Extremum(isMinimum ? midCandle.Low : midCandle.High, rightIndex, midCandle.Date + midCandle.Time, isMinimum);
+				/*if (extremums.Any() && extremum.Date == extremums[extremums.Count - 1].Date)
+				{
+					continue;
+				}*/
+
+				extremums.Add(extremum);
+				//leftIndex = midIndex;
 			}
 
-			return exremums;
+			return extremums;
 		}
 
 		private static List<Extremum> FindSecondExtremums(List<Extremum> firstExtremums, bool isMinimum)
@@ -137,9 +135,16 @@ namespace StrategyTester.Strategy
 			for (int i = 1; i < firstExtremums.Count - 1; ++i)
 			{
 				var currentValue = firstExtremums[i].Value;
-				if (isMinimum && currentValue < firstExtremums[i - 1].Value &&
+				var previousExtremum = firstExtremums[i - 1];
+				/*int j = i - 1;
+				while (j > 0 && previousExtremum.Value == currentValue)
+				{
+					previousExtremum = firstExtremums[--j];
+				}*/
+
+				if (isMinimum && currentValue < previousExtremum.Value &&
 				    currentValue < firstExtremums[i + 1].Value ||
-				    !isMinimum && currentValue > firstExtremums[i - 1].Value &&
+				    !isMinimum && currentValue > previousExtremum.Value &&
 				    currentValue > firstExtremums[i + 1].Value)
 				{
 					exremums.Add(new Extremum(currentValue, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date, isMinimum));	

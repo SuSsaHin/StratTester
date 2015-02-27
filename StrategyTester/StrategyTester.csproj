@@ -67,6 +67,7 @@
     <Compile Include="HistoryReader.cs" />
     <Compile Include="Types\Day.cs" />
     <Compile Include="Types\Deal.cs" />
+    <Compile Include="Types\Extremum.cs" />
     <Compile Include="Types\Tick.cs" />
     <Compile Include="Types\TradesResult.cs" />
     <Compile Include="Utils\Utils.cs" />
