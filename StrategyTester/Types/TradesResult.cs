@@ -12,8 +12,8 @@ namespace StrategyTester.Types
 		private int currentSag;
 		private int currentSagLength;
 
-		public int MaxSag { get; private set; }
-		public int MaxSagLength { get; private set; }
+		public int MaxDropdown { get; private set; }
+		public int MaxDropdownLength { get; private set; }
 
 		public int GoodCount 
 		{
@@ -68,10 +68,10 @@ namespace StrategyTester.Types
 		public override string ToString()
 		{
 			return string.Format("Good: {0}, Bad: {1}, Profit: {2}, Volume: {3}, Profit percent: {4},\n" +
-			                     "Max loss: {5}, Max profit: {6}, Max sag: {7}, Max sag length: {8},\n" +
+								 "Max loss: {5}, Max profit: {6}, Max dropdown: {7}, Max dropdown length: {8},\n" +
 			                     "Profit average: {9}, Loss average: {10}, Long good: {11}, short good: {12}", 
 								GoodCount, BadCount, Profit, Volume, 100*Math.Round(Profit / (double) Volume, 3), 
-								MaxLoss, MaxProfit, MaxSag, MaxSagLength,
+								MaxLoss, MaxProfit, MaxDropdown, MaxDropdownLength,
 								Math.Round(ProfitAverage, 2), Math.Round(LossAverage, 2), LongGoodCount, ShortGoodCount);
 		}
 
@@ -79,10 +79,10 @@ namespace StrategyTester.Types
 		{
 			if (deal.IsGood)
 			{
-				MaxSag = Math.Max(MaxSag, currentSag);
+				MaxDropdown = Math.Max(MaxDropdown, currentSag);
 				currentSag = 0;
 
-				MaxSagLength = Math.Max(MaxSagLength, currentSagLength);
+				MaxDropdownLength = Math.Max(MaxDropdownLength, currentSagLength);
 				currentSagLength = 0;
 			}
 			else

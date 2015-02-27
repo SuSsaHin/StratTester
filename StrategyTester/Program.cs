@@ -20,7 +20,7 @@ namespace StrategyTester
 
 			Console.WriteLine(repository.Days.Count);
 
-			TestExtremums2(repository);
+			TestExtremums(repository);
 			//TestSber(repository);
 
 			Console.WriteLine("End");
@@ -63,45 +63,41 @@ namespace StrategyTester
 
 		private static void TestExtremums(HistoryRepository repository)
 		{
-			var strat = new ExtremumStrategy();
 			var resultText = new List<string>();
 
-			for (int averageCount = 6; averageCount <= 15; averageCount++)
+			for (int stop = 700; stop <= 1500; stop += 100)
 			{
-				for (int stop = 400; stop <= 1000; stop += 100)
+				for (int pegTopSize = 50; pegTopSize <= 140; pegTopSize += 10)
 				{
-					var result = strat.Run(repository.Days, stop, averageCount);
-					result.PrintDepo(@"depo\" + averageCount + "_" + stop + ".txt");
+					var strat = new ExtremumStrategy(stop, pegTopSize);
 
-					resultText.Add("AC: " + averageCount + "; stop: " + stop);
+					var result = strat.Run(repository.Days);
+					result.PrintDepo(@"depo\" + stop + "_" + pegTopSize + ".txt");
+
+					resultText.Add("stop: " + stop + " pegTopSize: " + pegTopSize);
 					resultText.Add(result.ToString());
+					resultText.Add("");
 				}
-				//Console.WriteLine(averageCount);
-				//Console.WriteLine(result);
-				//File.WriteAllLines("ext.txt", strat.SExtremums);
-				//result.PrintDeals();
 			}
+
 			File.WriteAllLines("out.txt", resultText);
-			/*var result = strat.Run(repository.Days, 1000, 10);
-			Console.WriteLine(result);
-			result.PrintDeals("out.txt");
-			result.PrintDepo("depo.txt");
-			File.WriteAllLines("ext.txt", strat.SExtremums);*/
 		}
 
-		private static void TestExtremums2(HistoryRepository repository)
+		private static void TestExtremums0(HistoryRepository repository)
 		{
-			var strat = new ExtremumStrategy();
 			var resultText = new List<string>();
 
-			for (int stop = 400; stop <= 1000; stop += 100)
+			for (int stop = 200; stop <= 1000; stop += 100)
 			{
-				var result = strat.Run(repository.Days, stop);
+				var strat = new ExtremumStrategy(stop, 0);
+
+				var result = strat.Run(repository.Days);
 				result.PrintDepo(@"depo\" + stop + ".txt");
 
 				resultText.Add("stop: " + stop);
 				resultText.Add(result.ToString());
-			}		
+				resultText.Add("");
+			}
 
 			File.WriteAllLines("out.txt", resultText);
 		}

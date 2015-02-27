@@ -2,7 +2,7 @@
 {
 	class Deal
 	{
-		private const int comission = 10;
+		private const int comission = 30;
 
 		public Deal(int profit, bool isTrendLong)
 		{
