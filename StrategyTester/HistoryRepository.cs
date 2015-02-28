@@ -6,7 +6,7 @@ using StrategyTester.Types;
 
 namespace StrategyTester
 {
-	class HistoryRepository
+	public class HistoryRepository
 	{
 		public List<Day> Days { get; private set; }
 

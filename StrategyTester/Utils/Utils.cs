@@ -13,5 +13,10 @@ namespace StrategyTester.Utils
 		{
 			return current.High > previous.High && current.Low < previous.Low;
 		}
+
+		public static int Middle(this Candle candle)
+		{
+			return (candle.Close + candle.Open)/2;
+		}
 	}
 }

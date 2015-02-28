@@ -1,6 +1,6 @@
 ﻿namespace StrategyTester.Types
 {
-	class Deal
+	public class Deal
 	{
 		private const int comission = 30;
 

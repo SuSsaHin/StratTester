@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace StrategyTester.Types
 {
-	class TradesResult
+	public class TradesResult
 	{
 		private readonly List<Deal> deals = new List<Deal>();
 

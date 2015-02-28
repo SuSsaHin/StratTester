@@ -6,10 +6,12 @@ using StrategyTester.Utils;
 
 namespace StrategyTester.Strategy
 {
-	class ExtremumStrategy
+	public class ExtremumStrategy
 	{
 		private readonly int stopLoss;
 		private readonly int pegTopSize;
+
+		public int Good, Bad;
 
 		public ExtremumStrategy(int stopLoss, int pegTopSize)
 		{
@@ -53,7 +55,17 @@ namespace StrategyTester.Strategy
 				bool isTrendLong = startPrice > daysCandles.First().Open;
 
 				if (isTrendLong != extremum.IsMinimum)
+				{
+					if (isTrendLong == (daysCandles[daysCandles.Count - 1].Close > startPrice))
+					{
+						++Good;
+					}
+					else
+					{
+						++Bad;
+					}
 					continue;
+				}
 
 				/*if (!isTrendLong)
 					continue;*/

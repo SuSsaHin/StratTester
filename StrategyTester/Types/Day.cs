@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace StrategyTester.Types
 {
-	class Day
+	public class Day
 	{
 		public readonly Candle Params;
 		public readonly List<Candle> FiveMins;

@@ -2,7 +2,7 @@
 
 namespace StrategyTester.Types
 {
-	class Tick
+	public class Tick
 	{
 		private DateTime dateTime;
 

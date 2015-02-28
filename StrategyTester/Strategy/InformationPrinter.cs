@@ -6,7 +6,7 @@ using StrategyTester.Utils;
 
 namespace StrategyTester.Strategy
 {
-	static class SberStrategy
+	public static class InformationPrinter
 	{
 		private const string outPath = @"rts\";
 		private const string candlesPath = @"candles\";

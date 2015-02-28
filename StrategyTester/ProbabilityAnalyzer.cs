@@ -5,8 +5,21 @@ using StrategyTester.Types;
 
 namespace StrategyTester
 {
-	class ProbabilityAnalyzer
+	public class ProbabilityAnalyzer
 	{
+		public static double TestTrendFromNCandle(List<Day> days, int candleNumber)
+		{
+			double successCount = 0;
+			foreach (var day in days)
+			{
+				if (Math.Sign(day.FiveMins[candleNumber].Close - day.Params.Open) == Math.Sign(day.Params.Close - day.FiveMins[candleNumber].Close))
+				{
+					++successCount;
+				}
+			}
+			return successCount/days.Count;
+		}
+
 		public static Tuple<int, int> TestTrendInvertion(List<Day> days, int length, int skippedCount)
 		{
 			int samelyCount = 0, invertedCount = 0;

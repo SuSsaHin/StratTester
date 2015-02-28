@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace StrategyTester
 {
-	class TrendPredictorTester
+	public class TrendPredictorTester
 	{
 		public static string TestFuzzy(string historyFilename, string predictedFilename, int skipCount)
 		{

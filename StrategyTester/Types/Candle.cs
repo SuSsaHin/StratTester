@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace StrategyTester.Types
 {
-	class Candle
+	public class Candle
 	{
 		public Candle(List<Tick> ticks, int periodMins)
 		{
