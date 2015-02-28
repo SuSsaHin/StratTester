@@ -13,20 +13,20 @@ namespace Tests
 	[TestClass]
 	class StratTests
 	{
-		[TestCase("RTS-14")]
-		[TestCase("RTS-3.15")]
-		[TestCase("SBRF-14")]
-		[TestCase("SBRF-3.15")]
-		public static void TestExtremums(string toolName)
+		[TestCase("RTS-14",    300, 1000, 100, 30, 80, 10)]
+		[TestCase("RTS-3.15",  500, 1800, 100, 50, 120, 10)]
+		[TestCase("SBRF-14",   100, 300, 10, 3, 5, 1)]
+		[TestCase("SBRF-3.15", 300, 1000, 30, 80)]
+		public static void TestExtremums(string toolName, int startStop, int endStop, int stopStep, int startPegTopSize, int endPegTopSize, int pegTopSizeStep)
 		{
 			var repository = new HistoryRepository(toolName, false);
 			var resultText = new List<string>();
 			//var good = new List<int>();
 			//var bad = new List<int>();
 
-			for (int stop = 300; stop <= 1000; stop += 100)
+			for (int stop = startStop; stop <= endStop; stop += stopStep)
 			{
-				for (int pegTopSize = 30; pegTopSize <= 80; pegTopSize += 10)
+				for (int pegTopSize = startPegTopSize; pegTopSize <= endPegTopSize; pegTopSize += pegTopSizeStep)
 				{
 					var strat = new ExtremumStrategy(stop, pegTopSize);
 
@@ -118,7 +118,7 @@ namespace Tests
 
 		[TestCase("SBRF-14")]
 		[TestCase("SBRF-3.15")]
-		public static void TestSber(string toolName)
+		public static void PrintGraphs(string toolName)
 		{
 			var repository = new HistoryRepository(toolName, false);
 			InformationPrinter.Run(repository.Days);

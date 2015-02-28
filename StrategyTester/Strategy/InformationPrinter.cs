@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using StrategyTester.Types;
@@ -8,12 +9,14 @@ namespace StrategyTester.Strategy
 {
 	public static class InformationPrinter
 	{
-		private const string outPath = @"rts\";
+		private const string outPath = @"sber\";
 		private const string candlesPath = @"candles\";
 		private const string firstMaxPath = @"fMax\";
 		private const string firstMinPath = @"fMin\";
 		private const string secondMaxPath = @"sMax\";
 		private const string secondMinPath = @"sMin\";
+
+		private const int pegTopSize = 3;
 
 		public static void Run(List<Day> days)
 		{
@@ -59,6 +62,11 @@ namespace StrategyTester.Strategy
 				.ToList();
 		}
 
+		private static bool IsPegTop(Candle candle)
+		{
+			return Math.Abs(candle.Open - candle.Close) <= pegTopSize;
+		}
+
 		private static List<Extremum> FindFirstExtremums(List<Candle> candles, bool isMinimum)
 		{
 			var extremums = new List<Extremum>();
@@ -83,11 +91,17 @@ namespace StrategyTester.Strategy
 				if (isMinimum && midCandle.Low > rightCandle.Low || !isMinimum && midCandle.High < rightCandle.High)
 					continue;
 
+				if (IsPegTop(leftCandle) && IsPegTop(midCandle) && IsPegTop(rightCandle))
+					continue;
+
 				var extremum = new Extremum(isMinimum ? midCandle.Low : midCandle.High, rightIndex, midCandle.Date + midCandle.Time, isMinimum);
 				/*if (extremums.Any() && extremum.Date == extremums[extremums.Count - 1].Date)
-					continue;*/
+				{
+					continue;
+				}*/
 
 				extremums.Add(extremum);
+				//leftIndex = midIndex;
 			}
 
 			return extremums;
@@ -99,9 +113,16 @@ namespace StrategyTester.Strategy
 			for (int i = 1; i < firstExtremums.Count - 1; ++i)
 			{
 				var currentValue = firstExtremums[i].Value;
-				if (isMinimum && currentValue < firstExtremums[i - 1].Value &&
+				var previousExtremum = firstExtremums[i - 1];
+				/*int j = i - 1;
+				while (j > 0 && previousExtremum.Value == currentValue)
+				{
+					previousExtremum = firstExtremums[--j];
+				}*/
+
+				if (isMinimum && currentValue < previousExtremum.Value &&
 					currentValue < firstExtremums[i + 1].Value ||
-					!isMinimum && currentValue > firstExtremums[i - 1].Value &&
+					!isMinimum && currentValue > previousExtremum.Value &&
 					currentValue > firstExtremums[i + 1].Value)
 				{
 					exremums.Add(new Extremum(currentValue, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date, isMinimum));
@@ -110,6 +131,5 @@ namespace StrategyTester.Strategy
 
 			return exremums;
 		}
-
 	}
 }

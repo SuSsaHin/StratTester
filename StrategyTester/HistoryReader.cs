@@ -9,7 +9,7 @@ namespace StrategyTester
 {
 	class HistoryReader
 	{
-		private const string dataPath = @"..\..\History\";
+		private const string dataPath = @"..\..\..\History\";
 		private const string ticksDirectory = @"Ticks";
 		private const string candlesDirectory = @"Candles";
 		private const string filesExtension = ".txt";
