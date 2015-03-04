@@ -8,10 +8,11 @@ namespace StrategyTester
 {
 	public class TrendPredictorTester
 	{
+		private const string path = @"..\..\..\..\..\MATLAB\";
 		public static string TestFuzzy(string historyFilename, string predictedFilename, int skipCount)
 		{
-			var history = ReadArray(historyFilename);
-			var predicted = ReadArray(predictedFilename);
+			var history = ReadArray(path + historyFilename);
+			var predicted = ReadArray(path + predictedFilename);
 
 			skipCount++;
 
@@ -22,12 +23,21 @@ namespace StrategyTester
 			history = history.Skip(skipCount).ToList();
 
 			int successCounter = 0;
+			double sum = 0;
 
 			for (int i = 1; i < history.Count; ++i)
 			{
-				if (Math.Sign(history[i] - history[i - 1]) == Math.Sign(predicted[i] - history[i - 1]))
+				/*if (Math.Sign(history[i] - history[i - 1]) == Math.Sign(predicted[i] - history[i - 1]))
 				{
 					successCounter++;
+				*/
+				if (predicted[i] > history[i - 1])
+				{
+					sum += history[i] - history[i - 1];
+				}
+				else
+				{
+					sum -= history[i] - history[i - 1];
 				}
 			}
 

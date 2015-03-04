@@ -84,5 +84,10 @@ namespace StrategyTester.Types
 		{
 			get { return dateTime.TimeOfDay; }
 		}
+
+		public DateTime DateTime
+		{
+			get { return dateTime; }
+		}
 	}
 }

@@ -9,17 +9,25 @@ namespace StrategyTester.Strategy
 {
 	public static class InformationPrinter
 	{
-		private const string outPath = @"sber\";
+		//private const string outPath = @"sber\";
 		private const string candlesPath = @"candles\";
 		private const string firstMaxPath = @"fMax\";
 		private const string firstMinPath = @"fMin\";
 		private const string secondMaxPath = @"sMax\";
 		private const string secondMinPath = @"sMin\";
 
-		private const int pegTopSize = 3;
+		private const int pegTopSize = 0;
 
-		public static void Run(List<Day> days)
+		public static void Run(string toolName, List<Day> days)
 		{
+			var outPath = toolName + @"\";
+
+			Directory.CreateDirectory(outPath + candlesPath);
+			Directory.CreateDirectory(outPath + firstMaxPath);
+			Directory.CreateDirectory(outPath + firstMinPath);
+			Directory.CreateDirectory(outPath + secondMaxPath);
+			Directory.CreateDirectory(outPath + secondMinPath);
+			
 			for (int i = 0; i < days.Count; ++i)
 			{
 				var day = days[i];

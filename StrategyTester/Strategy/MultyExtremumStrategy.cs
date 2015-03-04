@@ -6,17 +6,17 @@ using StrategyTester.Utils;
 
 namespace StrategyTester.Strategy
 {
-	public class ExtremumStrategy
+	public class MultyExtremumStrategy
 	{
-		private readonly int baseStopLoss;
+		private readonly int stopLoss;
 		private readonly int pegTopSize;
-		private readonly double breakevenPercent;
+		private readonly int minExtremumStep;
 
-		public ExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent)
+		public MultyExtremumStrategy(int stopLoss, int pegTopSize, int minExtremumStep)
 		{
-			this.baseStopLoss = baseStopLoss;
+			this.stopLoss = stopLoss;
 			this.pegTopSize = pegTopSize;
-			this.breakevenPercent = breakevenPercent;
+			this.minExtremumStep = minExtremumStep;
 		}
 
 		public TradesResult Run(List<Day> days)
@@ -25,11 +25,14 @@ namespace StrategyTester.Strategy
 
 			foreach (var day in days)
 			{
-				var profit = GetDaysDeal(day.FiveMins);
-				if (profit == null)
+				var profits = GetDaysDeal(day.FiveMins);
+				if (profits == null)
 					continue;
 
-				result.AddDeal(profit);
+				foreach (var profit in profits)
+				{
+					result.AddDeal(profit);
+				}
 			}
 
 			return result;
@@ -40,37 +43,59 @@ namespace StrategyTester.Strategy
 			return Math.Abs(candle.Open - candle.Close) <= pegTopSize;
 		}
 
-		private Deal GetDaysDeal(List<Candle> daysCandles)
+		private List<Deal> GetDaysDeal(List<Candle> daysCandles)
 		{
 			var allExtremums = FindAllSecondExtremums(daysCandles);
+			bool inDeal = false;
+			bool isTrendLong = false;
+			int startIndex = 0;
+
+			var deals = new List<Deal>();
+			Extremum startExtremum = null;
 
 			foreach (var extremum in allExtremums)
 			{
-				var startIndex = extremum.CheckerIndex;
-				if (startIndex == daysCandles.Count-1)
+				if (inDeal)
+				{
+					if (extremum.IsMinimum == isTrendLong)
+						continue;
+
+					if (isTrendLong && (extremum.Value - startExtremum.Value) < minExtremumStep ||
+						!isTrendLong && (startExtremum.Value - extremum.Value) < minExtremumStep)
+						continue;
+
+					var startPrice = daysCandles[startIndex + 1].Open;
+					var dynamicStopLoss = GetDynamicStopLoss(startPrice, isTrendLong, extremum);	//TODO исправить экстремум
+					var dealCandles = daysCandles.Skip(startIndex + 1).Take(extremum.CheckerIndex - startIndex).ToList();
+
+					var stopResult = GetStopResult(dealCandles, isTrendLong, dynamicStopLoss);
+					var endPrice = stopResult != -1 ? stopResult : daysCandles[extremum.CheckerIndex].Close;
+					deals.Add(new Deal(startPrice, endPrice, isTrendLong, daysCandles[startIndex + 1].DateTime, startIndex+1));
+
+					inDeal = false;
+					if (stopResult != -1)
+						break;
+				}
+
+				startExtremum = extremum;
+				startIndex = extremum.CheckerIndex;
+				if (startIndex == daysCandles.Count - 1)
 					break;
 
-				var startPrice = daysCandles[startIndex + 1].Open;
-
-//				bool isTrendLong = extremum.Value > daysCandles.First().Open;
-				bool isTrendLong = startPrice > daysCandles.First().Open;
-
-				if (isTrendLong != extremum.IsMinimum)
-					continue;
-				//isTrendLong = extremum.IsMinimum;
-
-				/*if (!isTrendLong)
-					continue;*/
-
-				var dynamicStopLoss = GetDynamicStopLoss(startPrice, isTrendLong, extremum);
-
-				var stopResult = GetStopResult(daysCandles.Skip(startIndex + 1), isTrendLong, dynamicStopLoss);
-
-				var endPrice = stopResult != -1 ? stopResult : daysCandles[daysCandles.Count - 1].Close;
-
-				return new Deal(startPrice, endPrice, isTrendLong);
+				isTrendLong = extremum.IsMinimum;
+				inDeal = true;
 			}
-			return null;
+
+			if (inDeal)
+			{
+				var startPrice = daysCandles[startIndex + 1].Open;
+				var dynamicStopLoss = GetDynamicStopLoss(startPrice, isTrendLong, null);
+				var dealCandles = daysCandles.Skip(startIndex + 1).ToList();
+				var stopResult = GetStopResult(dealCandles, isTrendLong, dynamicStopLoss);
+				var endPrice = stopResult != -1 ? stopResult : daysCandles[dealCandles.Count - 1].Close;
+				deals.Add(new Deal(startPrice, endPrice, isTrendLong, daysCandles[startIndex + 1].DateTime, startIndex+1));
+			}
+			 return deals;
 		}
 
 		private int GetProfit(bool isTrendLong, int startPrice, int endPrice)
@@ -86,7 +111,7 @@ namespace StrategyTester.Strategy
 			if (dist > stopLoss && dist < stopLoss*maxStopRatio)
 				return dist;*/
 
-			return baseStopLoss;
+			return stopLoss;
 		}
 
 		private List<Extremum> FindAllSecondExtremums(List<Candle> daysCandles)
@@ -96,7 +121,7 @@ namespace StrategyTester.Strategy
 
 			var secondLongExtremums = FindSecondExtremums(firstLongExtremums, true);
 			var secondShortExtremums = FindSecondExtremums(firstShortExtremums, false);
-
+			
 			var allSecondExtremums = secondLongExtremums
 				.Concat(secondShortExtremums)
 				.OrderBy(ex => ex.CheckerIndex)
@@ -106,7 +131,7 @@ namespace StrategyTester.Strategy
 			{
 				if (allSecondExtremums[i].Date >= allSecondExtremums[i + 1].Date)
 				{
-					allSecondExtremums.RemoveAt(i + 1);
+					allSecondExtremums.RemoveAt(i+1);
 					--i;
 				}
 			}
@@ -120,7 +145,7 @@ namespace StrategyTester.Strategy
 			for (int leftIndex = 0; leftIndex < candles.Count; ++leftIndex)
 			{
 				var leftCandle = candles[leftIndex];
-				var midIndex = candles.FindIndex(leftIndex+1, c => !c.IsOuter(leftCandle));
+				var midIndex = candles.FindIndex(leftIndex + 1, c => !c.IsOuter(leftCandle));
 				if (midIndex == -1)
 					continue;
 
@@ -129,7 +154,7 @@ namespace StrategyTester.Strategy
 				if (isMinimum && midCandle.Low > leftCandle.Low || !isMinimum && midCandle.High < leftCandle.High)
 					continue;
 
-				var rightIndex = candles.FindIndex(midIndex+1, c => !c.IsInner(midCandle));
+				var rightIndex = candles.FindIndex(midIndex + 1, c => !c.IsInner(midCandle));
 				if (rightIndex == -1)
 					continue;
 
@@ -142,8 +167,13 @@ namespace StrategyTester.Strategy
 					continue;
 
 				var extremum = new Extremum(isMinimum ? midCandle.Low : midCandle.High, rightIndex, midCandle.Date + midCandle.Time, isMinimum);
+				/*if (extremums.Any() && extremum.Date == extremums[extremums.Count - 1].Date)
+				{
+					continue;
+				}*/
 
 				extremums.Add(extremum);
+				//leftIndex = midIndex;
 			}
 
 			return extremums;
@@ -163,26 +193,24 @@ namespace StrategyTester.Strategy
 				}*/
 
 				if (isMinimum && currentValue < previousExtremum.Value &&
-				    currentValue < firstExtremums[i + 1].Value ||
-				    !isMinimum && currentValue > previousExtremum.Value &&
-				    currentValue > firstExtremums[i + 1].Value)
+					currentValue < firstExtremums[i + 1].Value ||
+					!isMinimum && currentValue > previousExtremum.Value &&
+					currentValue > firstExtremums[i + 1].Value)
 				{
-					exremums.Add(new Extremum(currentValue, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date, isMinimum));	
+					exremums.Add(new Extremum(currentValue, firstExtremums[i + 1].CheckerIndex, firstExtremums[i].Date, isMinimum));
 				}
 			}
 
 			return exremums;
 		}
 
-		private int GetStopResult(IEnumerable<Candle> dealCandles, bool isTrendLong, int stopLoss)
+		private static int GetStopResult(List<Candle> dealCandles, bool isTrendLong, int stopLoss)
 		{
-			//const int breakevenSize = 50;
-			int breakevenSize = (int) (breakevenPercent*stopLoss);
+			const int breakevenSize = 50;
 
-			var candles = dealCandles as IList<Candle> ?? dealCandles.ToList();
-			int startPrice = candles.First().Open;
+			int startPrice = dealCandles.First().Open;
 
-			foreach (var candle in candles)
+			foreach (var candle in dealCandles)
 			{
 				if (isTrendLong && candle.Low <= startPrice - stopLoss)
 					return startPrice - stopLoss;

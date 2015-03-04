@@ -1,8 +1,10 @@
-﻿namespace StrategyTester.Types
+﻿using System;
+
+namespace StrategyTester.Types
 {
 	public class Deal
 	{
-		private const int comission = 30;
+		private const int comission = 15;
 
 		public Deal(int profit, bool isTrendLong)
 		{
@@ -17,8 +19,20 @@
 			IsTrendLong = isTrendLong;
 		}
 
+		public Deal(int startPrice, int endPrice, bool isTrendLong, DateTime start, int extremumIndex)
+		{
+			Profit = isTrendLong ? endPrice - startPrice : startPrice - endPrice;
+			Profit -= comission;
+			IsTrendLong = isTrendLong;
+			Start = start;
+			ExtremumIndex = extremumIndex;
+		}
+
 		public bool IsTrendLong { get; private set; }
 		public int Profit { get; private set; }
+		public DateTime Start { get; private set; }
+		public int ExtremumIndex { get; private set; }
+
 		public bool IsGood { get { return Profit > 0; } }
 	}
 }

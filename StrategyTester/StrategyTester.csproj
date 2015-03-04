@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="Strategy\InformationPrinter.cs" />
     <Compile Include="Strategy\LinearExtrapolator.cs" />
+    <Compile Include="Strategy\MultyExtremumStrategy.cs" />
     <Compile Include="TrendPredictorTester.cs" />
     <Compile Include="Strategy\ExtremumStrategy.cs" />
     <Compile Include="ProbabilityAnalyzer.cs" />
