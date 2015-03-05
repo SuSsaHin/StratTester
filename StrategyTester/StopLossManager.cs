@@ -95,6 +95,17 @@ namespace StrategyTester
 			return -1;
 		}
 
+		public int GetDynamicStopLoss(int startPrice, bool isTrendLong, Extremum extremum)
+		{
+			const double maxStopRatio = 1.5;
+			var dist = -(isTrendLong ? extremum.Value - startPrice : startPrice - extremum.Value);
+
+			if (dist > baseStopLoss && dist < baseStopLoss * maxStopRatio)
+				return dist;
+
+			return baseStopLoss;
+		}
+
 		private int GetBreakeven(bool isTrendLong, Candle candle, int startPrice)
 		{
 			if ((isTrendLong && candle.High >= startPrice + breakevenInitizlizerSize ||
