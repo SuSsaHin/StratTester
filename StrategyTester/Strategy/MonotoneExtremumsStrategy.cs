@@ -85,8 +85,20 @@ namespace StrategyTester.Strategy
 			if (!AreMonotone(trendExtremums, monotoneCount, isTrendLong))
 				return 0;
 
-			if (AreMonotone(unTrendExtremums, invertCount, !isTrendLong))
-				return 0;
+			if (unTrendExtremums.Count > 1)
+			{
+
+				if (unTrendExtremums.Count > invertCount)
+				{
+					unTrendExtremums = unTrendExtremums.Skip(unTrendExtremums.Count - invertCount).ToList();
+				}
+				var avg = unTrendExtremums.Average(ex => ex.Value - unTrendExtremums.First().Value);
+
+				if (isTrendLong && avg < 0 || !isTrendLong && avg > 0)
+					return 0;
+			}
+			/*if (AreMonotone(unTrendExtremums, invertCount, !isTrendLong))
+				return 0;*/
 
 			return isTrendLong ? 1 : -1;
 		}
