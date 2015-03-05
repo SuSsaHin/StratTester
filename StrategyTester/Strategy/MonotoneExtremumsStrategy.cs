@@ -7,17 +7,21 @@ namespace StrategyTester.Strategy
 {
 	public class MonotoneExtremumsStrategy
 	{
-		private readonly ExtremumsFinder finder;
 		private readonly int monotoneCount;
 		private readonly int invertCount;
-		private readonly int baseStopLoss;
+		private readonly TimeSpan lastTradeTime;
 
-		public MonotoneExtremumsStrategy(int monotoneCount, int baseStopLoss, int invertCount)
+		private readonly ExtremumsFinder finder;
+		private readonly StopLossManager stopLossManager;
+
+		public MonotoneExtremumsStrategy(int monotoneCount, int baseStopLoss, int invertCount, double breakevenPercent, TimeSpan? lastTradeTime = null)
 		{
 			this.monotoneCount = monotoneCount;
-			this.baseStopLoss = baseStopLoss;
 			this.invertCount = invertCount;
+			this.lastTradeTime = lastTradeTime ?? new TimeSpan(23, 59, 59);
+
 			finder = new ExtremumsFinder(0);
+			stopLossManager = new StopLossManager(baseStopLoss, breakevenPercent, 1);
 		}
 
 		public TradesResult Run(List<Day> days)
@@ -45,6 +49,9 @@ namespace StrategyTester.Strategy
 
 			foreach (var extremum in allExtremums)
 			{
+				if (extremum.Date.TimeOfDay > lastTradeTime)
+					break;
+
 				var startIndex = extremum.CheckerIndex;
 				if (startIndex == daysCandles.Count - 1)
 					break;
@@ -59,7 +66,7 @@ namespace StrategyTester.Strategy
 				bool isTrendLong = trendDirection == 1;
 
 				var startPrice = daysCandles[startIndex + 1].Open;
-				var stopResult = GetStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
+				var stopResult = stopLossManager.GetBreakevenStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
 
 				var endPrice = stopResult != -1 ? stopResult : daysCandles[daysCandles.Count - 1].Close;
 
@@ -70,7 +77,7 @@ namespace StrategyTester.Strategy
 
 		private int GetTrendDirection(List<Extremum> currentLong, List<Extremum> currentShort, Extremum extremum)
 		{
-			var isTrendLong = extremum.IsMinimum;
+			var isTrendLong = !extremum.IsMinimum;
 
 			var trendExtremums = isTrendLong ? currentLong : currentShort;
 			var unTrendExtremums = isTrendLong ? currentShort : currentLong;
@@ -97,24 +104,6 @@ namespace StrategyTester.Strategy
 			}
 
 			return true;
-		}
-
-		private int GetStopResult(IEnumerable<Candle> dealCandles, bool isTrendLong)
-		{
-			var candles = dealCandles as IList<Candle> ?? dealCandles.ToList();
-			int startPrice = candles.First().Open;
-			int stopLoss = baseStopLoss;
-
-			foreach (var candle in candles)
-			{
-				if (isTrendLong && candle.Low <= startPrice - stopLoss)
-					return startPrice - stopLoss;
-
-				if (!isTrendLong && candle.High >= startPrice + stopLoss)
-					return startPrice + stopLoss;
-			}
-
-			return -1;
 		}
 	}
 }

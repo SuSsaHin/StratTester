@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using StrategyTester.Types;
-using StrategyTester.Utils;
 
 namespace StrategyTester.Strategy
 {
@@ -99,22 +98,11 @@ namespace StrategyTester.Strategy
 			foreach (var candle in candles)
 			{
 				if (isTrendLong && candle.Low <= startPrice - stopLoss)
-				{
-					if (wasNew)
-					{
-						int a = 0;
-					}
 					return startPrice - stopLoss;
-				}
+
 
 				if (!isTrendLong && candle.High >= startPrice + stopLoss)
-				{
-					if (wasNew)
-					{
-						int a = 0;
-					}
 					return startPrice + stopLoss;
-				}
 
 				if (stopLoss > -breakevenSize &&
 					(isTrendLong && candle.High >= startPrice + stopLoss ||
@@ -122,13 +110,11 @@ namespace StrategyTester.Strategy
 					stopLoss = -breakevenSize;
 
 				var newStopLoss = (isTrendLong ? startPrice - candle.High : candle.Low - startPrice) + (int)(baseStopLoss*breakevenPercent);
-				stopLoss /= 10;
-				stopLoss *= 10;
+				newStopLoss = (newStopLoss / 10) * 10;
 				if (newStopLoss > 0 || newStopLoss > stopLoss)
 					continue;
 
 				stopLoss = newStopLoss;
-				wasNew = true;
 			}
 
 			return -1;

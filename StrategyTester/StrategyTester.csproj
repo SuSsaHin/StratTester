@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExtremumsFinder.cs" />
+    <Compile Include="StopLossManager.cs" />
     <Compile Include="Strategy\CorrectedExtremumStrategy.cs" />
     <Compile Include="Strategy\MonotoneExtremumsStrategy.cs" />
     <Compile Include="Utils\InformationPrinter.cs" />

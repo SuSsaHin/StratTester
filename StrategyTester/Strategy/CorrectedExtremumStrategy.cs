@@ -6,16 +6,13 @@ namespace StrategyTester.Strategy
 {
 	public class CorrectedExtremumStrategy
 	{
-		private readonly int baseStopLoss;
-		private readonly double breakevenPercent;
 		private readonly ExtremumsFinder extremumsFinder;
+		private readonly StopLossManager stopLossManager;
 
 		public CorrectedExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent)
 		{
-			this.baseStopLoss = baseStopLoss;
-			this.breakevenPercent = breakevenPercent;
-
 			extremumsFinder = new ExtremumsFinder(pegTopSize);
+			stopLossManager = new StopLossManager(baseStopLoss, breakevenPercent);
 		}
 
 		public TradesResult Run(List<Day> days)
@@ -52,38 +49,13 @@ namespace StrategyTester.Strategy
 				if (isTrendLong != extremum.IsMinimum)
 					continue;
 
-				var stopResult = GetStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
+				var stopResult = stopLossManager.GetBreakevenStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
 
 				var endPrice = stopResult != -1 ? stopResult : daysCandles[daysCandles.Count - 1].Close;
 
 				return new Deal(startPrice, endPrice, isTrendLong);
 			}
 			return null;
-		}
-
-		private int GetStopResult(IEnumerable<Candle> dealCandles, bool isTrendLong)
-		{
-			int stopLoss = baseStopLoss;
-			var breakevenSize = (int)(breakevenPercent * stopLoss);
-
-			var candles = dealCandles as IList<Candle> ?? dealCandles.ToList();
-			int startPrice = candles.First().Open;
-
-			foreach (var candle in candles)
-			{
-				if (isTrendLong && candle.Low <= startPrice - stopLoss)
-					return startPrice - stopLoss;
-
-				if (!isTrendLong && candle.High >= startPrice + stopLoss)
-					return startPrice + stopLoss;
-
-				if (stopLoss > -breakevenSize &&
-					(isTrendLong && candle.High >= startPrice + stopLoss ||
-					!isTrendLong && candle.Low <= startPrice - stopLoss))
-					stopLoss = -breakevenSize;
-			}
-
-			return -1;
 		}
 	}
 }
