@@ -53,8 +53,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="MonotoneExtremumsStrategyTests.cs" />
+    <Compile Include="ProbabilityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StratTests.cs" />
+    <Compile Include="ExtremumStrategyTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StrategyTester\StrategyTester.csproj">

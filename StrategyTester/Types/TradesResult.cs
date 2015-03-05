@@ -15,6 +15,8 @@ namespace StrategyTester.Types
 		public int MaxDropdown { get; private set; }
 		public int MaxDropdownLength { get; private set; }
 
+		public int DealsCount { get { return deals.Count; } }
+
 		public int GoodCount 
 		{
 			get { return deals.Count(d => d.IsGood); } 
@@ -37,22 +39,38 @@ namespace StrategyTester.Types
 
 		public int MaxLoss
 		{
-			get { return Math.Abs(deals.Where(d => !d.IsGood).Min(d => d.Profit)); }
+			get
+			{
+				var badDeals = deals.Where(d => !d.IsGood).ToList();
+				return badDeals.Any() ? Math.Abs(badDeals.Min(d => d.Profit)) : 0;
+			}
 		}
 
 		public int MaxProfit
 		{
-			get { return deals.Where(d => d.IsGood).Max(d => d.Profit); }
+			get
+			{
+				var goodDeals = deals.Where(d => d.IsGood).ToList();
+				return goodDeals.Any() ? goodDeals.Max(d => d.Profit) : 0;
+			}
 		}
 
 		public double ProfitAverage
 		{
-			get { return deals.Where(d => d.IsGood).Average(d => d.Profit); }
+			get
+			{
+				var goodDeals = deals.Where(d => d.IsGood).ToList();
+				return goodDeals.Any() ? goodDeals.Average(d => d.Profit) : 0;
+			}
 		}
 
 		public double LossAverage
 		{
-			get { return deals.Where(d => !d.IsGood).Average(d => d.Profit); }
+			get
+			{
+				var badDeals = deals.Where(d => !d.IsGood).ToList();
+				return badDeals.Any() ? badDeals.Average(d => d.Profit) : 0;
+			}
 		}
 
 		public int LongGoodCount

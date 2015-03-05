@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using StrategyTester;
 using StrategyTester.Strategy;
+using StrategyTester.Utils;
 
 namespace Tests
 {
 	[TestClass]
-	class StratTests
+	class ExtremumStrategyTests
 	{
-		[TestCase("RTS-14",		600, 1000, 100, 40, 70, 10)]
+		[TestCase("RTS-14",		600, 1000, 100, 60, 60, 10)]
 		[TestCase("RTS-3.15",	900, 1400, 100, 40, 120, 20)]
 		[TestCase("SBRF-14",	100, 300, 10, 3, 5, 1)]
 		[TestCase("SBRF-3.15",	300, 1000, 30, 80)]
@@ -31,7 +31,7 @@ namespace Tests
 			{
 				for (int pegTopSize = startPegTopSize; pegTopSize <= endPegTopSize; pegTopSize += pegTopSizeStep)
 				{
-					for (double breakevenSize = 0.2; breakevenSize <= 0.35; breakevenSize += 0.05)
+					for (double breakevenSize = 0.8; breakevenSize <= 2.0; breakevenSize += 0.1)
 					{
 						var strat = new ExtremumStrategy(stop, pegTopSize, breakevenSize);
 
@@ -84,7 +84,7 @@ namespace Tests
 		[TestCase("RTS-14", 900, 60, 0.15)]
 		[TestCase("RTS-3.15", 900, 60, 0.15)]
 		[TestCase("SI-14", 260, 0, 0.2)]
-		[TestCase("SI-3.15", 260, 0, 0.2)]
+		[TestCase("SI-3.15", 350, 20, 0.3)]
 		public static void RunExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)
 		{
 			var repository = new HistoryRepository(toolName, false);
@@ -95,6 +95,26 @@ namespace Tests
 			var avg = avgCandles.Average(c => Math.Abs(c.Close - c.Open));*/
 
 			var strat = new ExtremumStrategy(stopLoss, pegTopSize, breakevenSize);
+
+			var result = strat.Run(repository.Days);
+			result.PrintDepo(@"depo\run.txt");
+
+			resultText.Add(result.ToString());
+			resultText.Add("");
+
+			File.WriteAllLines("out.txt", resultText);
+		}
+
+		[TestCase("RTS-14", 900, 60, 0.15)]
+		[TestCase("RTS-3.15", 900, 60, 0.15)]
+		[TestCase("SI-14", 260, 0, 0.2)]
+		[TestCase("SI-3.15", 350, 20, 0.3)]
+		public static void RunCorrectedExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)
+		{
+			var repository = new HistoryRepository(toolName, false);
+			var resultText = new List<string>();
+
+			var strat = new CorrectedExtremumStrategy(stopLoss, pegTopSize, breakevenSize);
 
 			var result = strat.Run(repository.Days);
 			result.PrintDepo(@"depo\run.txt");
@@ -167,53 +187,6 @@ namespace Tests
 			}
 
 			File.WriteAllLines("out.txt", resultText);
-		}
-
-		[TestCase("RTS-14")]
-		[TestCase("SBRF-14")]
-		[TestCase("SI-14")]
-		public static void TestTrendFromNCandle(string toolName)
-		{
-			var repository = new HistoryRepository(toolName, false);
-			//File.WriteAllLines("ClosesSber.txt", repository.Days.Select(day => day.Params.Close.ToString()));
-			var maxCount = repository.Days.Min(day => day.FiveMins.Count);
-			var result = new List<string>();
-			for (int i = 0; i < maxCount; ++i)
-			{
-				result.Add(ProbabilityAnalyzer.TestTrendFromNCandle(repository.Days, i).ToString(new CultureInfo("en-us")));
-			}
-			File.WriteAllLines("Prob.txt", result);
-		}
-
-		[Test]
-		public static void TestFuzzy()
-		{
-			for (int len = 10; len <= 24; len += 4)
-			{
-				for (int krfu = 3; krfu <= 20; krfu+=4)
-				{
-					try
-					{
-						Console.WriteLine("{0} {1}: {2}", len, krfu, TrendPredictorTester.TestFuzzy("closesSber.txt", "pred_" + len + "_" + krfu + ".txt", len));
-					}
-					catch (Exception ex)
-					{
-						break;
-					}
-				}
-			}
-		}
-
-		[Test]
-		public static void TestTrend()
-		{
-			for (int averageCount = 1; averageCount < 20; ++averageCount)
-			{
-				for (int shortAverageCount = 1; shortAverageCount < averageCount; ++shortAverageCount)
-				{
-					Console.WriteLine("{0} {1}: {2}", averageCount, shortAverageCount, TrendPredictorTester.TestAverage("closes.txt", averageCount, shortAverageCount));
-				}
-			}
 		}
 
 		[TestCase("SBRF-14")]
