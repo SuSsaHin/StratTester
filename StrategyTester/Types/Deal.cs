@@ -4,7 +4,7 @@ namespace StrategyTester.Types
 {
 	public class Deal
 	{
-		private const int comission = 15;
+		private const int comission = 30;
 
 		public Deal(int profit, bool isTrendLong)
 		{
@@ -12,18 +12,13 @@ namespace StrategyTester.Types
 			IsTrendLong = isTrendLong;
 		}
 
-		public Deal(int startPrice, int endPrice, bool isTrendLong)
-		{
-			Profit = isTrendLong ? endPrice - startPrice : startPrice - endPrice;
-			Profit -= comission;
-			IsTrendLong = isTrendLong;
-		}
+		public Deal(int startPrice, int endPrice, bool isTrendLong):
+			this(isTrendLong ? endPrice - startPrice : startPrice - endPrice, isTrendLong)
+		{}
 
-		public Deal(int startPrice, int endPrice, bool isTrendLong, DateTime start, int extremumIndex)
+		public Deal(int startPrice, int endPrice, bool isTrendLong, DateTime start, int extremumIndex):
+			this(startPrice, endPrice, isTrendLong)
 		{
-			Profit = isTrendLong ? endPrice - startPrice : startPrice - endPrice;
-			Profit -= comission;
-			IsTrendLong = isTrendLong;
 			Start = start;
 			ExtremumIndex = extremumIndex;
 		}

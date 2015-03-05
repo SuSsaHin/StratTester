@@ -18,7 +18,7 @@ namespace Tests
 		[TestCase("SBRF-14",	100, 300, 10, 3, 5, 1)]
 		[TestCase("SBRF-3.15",	300, 1000, 30, 80)]
 		[TestCase("SI-14",		100, 440, 40, 0, 3, 1)]
-		[TestCase("SI-3.15",	200, 600, 50, 2, 2, 4)]
+		[TestCase("SI-3.15",	250, 450, 50, 10, 30, 10)]
 		public static void TestExtremums(string toolName, int startStop, int endStop, int stopStep, 
 											int startPegTopSize, int endPegTopSize, int pegTopSizeStep)
 		{
@@ -31,7 +31,7 @@ namespace Tests
 			{
 				for (int pegTopSize = startPegTopSize; pegTopSize <= endPegTopSize; pegTopSize += pegTopSizeStep)
 				{
-					for (double breakevenSize = 0.1; breakevenSize <= 0.25; breakevenSize += 0.05)
+					for (double breakevenSize = 0.2; breakevenSize <= 0.35; breakevenSize += 0.05)
 					{
 						var strat = new ExtremumStrategy(stop, pegTopSize, breakevenSize);
 
@@ -56,18 +56,19 @@ namespace Tests
 		[TestCase("RTS-14", 900, 60, 0.15)]
 		[TestCase("RTS-3.15", 900, 60, 0.15)]
 		[TestCase("SI-14", 260, 0, 0.2)]
-		[TestCase("SI-3.15", 260, 0, 0.2)]
-		public static void TestOptimumExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)
+		[TestCase("SI-3.15", 350, 20, 0.3)]
+		public static void TestEndTimeExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)
 		{
 			var repository = new HistoryRepository(toolName, false);
 			var resultText = new List<string>();
 
-			var strat = new ExtremumStrategy(stopLoss, pegTopSize, breakevenSize);
-
 			for (int hours = 15; hours <= 23; ++hours)
 			{
-				for (int minutes = 0; minutes < 60; minutes += 30)
+				for (int minutes = 0; minutes < 60; minutes += 15)
 				{
+					var time = new TimeSpan(hours, minutes, 0);
+					var strat = new ExtremumStrategy(stopLoss, pegTopSize, breakevenSize, time);
+
 					var result = strat.Run(repository.Days);
 					result.PrintDepo(@"depo\" + hours + "_" + minutes + ".txt");
 
@@ -79,6 +80,31 @@ namespace Tests
 
 			File.WriteAllLines("out.txt", resultText);
 		}
+
+		[TestCase("RTS-14", 900, 60, 0.15)]
+		[TestCase("RTS-3.15", 900, 60, 0.15)]
+		[TestCase("SI-14", 260, 0, 0.2)]
+		[TestCase("SI-3.15", 260, 0, 0.2)]
+		public static void RunExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)
+		{
+			var repository = new HistoryRepository(toolName, false);
+			var resultText = new List<string>();
+
+			/*var date = new DateTime(2014, 06, 01);
+			var avgCandles = repository.Days.SelectMany(day => day.FiveMins).ToList();
+			var avg = avgCandles.Average(c => Math.Abs(c.Close - c.Open));*/
+
+			var strat = new ExtremumStrategy(stopLoss, pegTopSize, breakevenSize);
+
+			var result = strat.Run(repository.Days);
+			result.PrintDepo(@"depo\run.txt");
+
+			resultText.Add(result.ToString());
+			resultText.Add("");
+
+			File.WriteAllLines("out.txt", resultText);
+		}
+
 		[TestCase("RTS-14", 600, 1000, 100, 30, 70, 10)]
 		[TestCase("RTS-3.15", 500, 1800, 100, 50, 120, 10)]
 		[TestCase("SBRF-14", 100, 300, 10, 3, 5, 1)]

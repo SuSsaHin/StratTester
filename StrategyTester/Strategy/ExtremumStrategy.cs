@@ -11,12 +11,14 @@ namespace StrategyTester.Strategy
 		private readonly int baseStopLoss;
 		private readonly int pegTopSize;
 		private readonly double breakevenPercent;
+		private readonly TimeSpan lastTradeTime;
 
-		public ExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent)
+		public ExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent, TimeSpan? lastTradeTime = null)
 		{
 			this.baseStopLoss = baseStopLoss;
 			this.pegTopSize = pegTopSize;
 			this.breakevenPercent = breakevenPercent;
+			this.lastTradeTime = lastTradeTime ?? new TimeSpan(23, 59, 59);
 		}
 
 		public TradesResult Run(List<Day> days)
@@ -26,6 +28,7 @@ namespace StrategyTester.Strategy
 			foreach (var day in days)
 			{
 				var profit = GetDaysDeal(day.FiveMins);
+				
 				if (profit == null)
 					continue;
 
@@ -50,7 +53,11 @@ namespace StrategyTester.Strategy
 				if (startIndex == daysCandles.Count-1)
 					break;
 
-				var startPrice = daysCandles[startIndex + 1].Open;
+				var startCandle = daysCandles[startIndex + 1];
+				if (startCandle.Time > lastTradeTime)
+					break;
+
+				var startPrice = startCandle.Open;
 
 //				bool isTrendLong = extremum.Value > daysCandles.First().Open;
 				bool isTrendLong = startPrice > daysCandles.First().Open;
