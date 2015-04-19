@@ -89,5 +89,10 @@ namespace StrategyTester.Types
 		{
 			get { return dateTime; }
 		}
+
+	    public int InnerHeigth
+	    {
+            get { return Math.Abs(Open - Close); }
+	    }
 	}
 }

@@ -6,12 +6,45 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using StrategyTester;
+using StrategyTester.Utils;
 
 namespace Tests
 {
 	[TestClass]
 	class ProbabilityTests
 	{
+        [TestCase("RTS-14")]
+        [TestCase("RTS-15")]
+        public static void TestDaysHeightsAlternation(string toolName)
+        {
+            const int maxContinuationLength = 5;
+            const int maxAverageDaysLength = 20;
+
+            var repository = new HistoryRepository(toolName, false);
+
+            var output = new List<string>();
+
+            var headers = new List<string> { "Length of average interval", "Continuation length", "Alternates count", "Continuation count", "Alternates percent" };
+            var tableOutput = new List<List<string>>();
+            for (int averageDaysLength = 5; averageDaysLength <= maxAverageDaysLength; ++averageDaysLength)
+            {
+                output.Add("Length of average interval: " + averageDaysLength);
+                output.Add("");
+                for (int continuationLength = 1; continuationLength < maxContinuationLength; ++continuationLength)
+                {
+                    var current = ProbabilityAnalyzer.TesCandlesHightAlternation(repository.Days.Select(day => day.Params).ToList(), continuationLength, averageDaysLength);
+                    decimal alternatePercent = Math.Round(current.Item1/((decimal) current.Item1 + current.Item2), 2);
+                    output.Add("Continuation length: " + continuationLength);
+                    output.Add("Alternates count: " + current.Item1 + ", continuation count: " + current.Item2 + ", alternates percent: " + alternatePercent);
+                    output.Add("");
+                    tableOutput.Add(new List<string>{averageDaysLength.ToString(), continuationLength.ToString(), current.Item1.ToString(), current.Item2.ToString(), alternatePercent.ToString(new CultureInfo("en-us"))});
+                }
+                output.Add("");
+            }
+            TablesWriter.PrintExcel("AlternationTest " + toolName + ".xlsx", headers, tableOutput);
+            File.WriteAllLines("AlternationTest " + toolName + ".txt", output);
+        }
+
 		[TestCase("RTS-14")]
 		[TestCase("SBRF-14")]
 		[TestCase("SI-14")]

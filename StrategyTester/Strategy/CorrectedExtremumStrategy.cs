@@ -10,7 +10,6 @@ namespace StrategyTester.Strategy
 		private readonly ExtremumsFinder extremumsFinder;
 		private readonly StopLossManager stopLossManager;
 	    private readonly int maxDistFromOpen;
-	    public int MaxDistBreakCounter = 0;
 
 		public CorrectedExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent, int trailingStopSize, int maxDistFromOpen = int.MaxValue)
 		{
@@ -55,13 +54,9 @@ namespace StrategyTester.Strategy
 					continue;
 
                 if (Math.Abs(distFromOpen) > maxDistFromOpen)
-                {
-                    MaxDistBreakCounter++;
                     return null;
-                }
 
                 var stopResult = stopLossManager.GetTrailingStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
-				//var stopResult = stopLossManager.GetBreakevenStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
 
 				var endPrice = stopResult != -1 ? stopResult : daysCandles[daysCandles.Count - 1].Close;
 

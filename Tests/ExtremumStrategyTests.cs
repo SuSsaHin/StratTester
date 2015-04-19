@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using StrategyTester;
 using StrategyTester.Strategy;
+using StrategyTester.Types;
 using StrategyTester.Utils;
 
 namespace Tests
@@ -64,6 +65,10 @@ namespace Tests
             var repository = new HistoryRepository(toolName, false);
             var resultText = new List<string>();
 
+            var headers = new List<string> {"Stop", "Trailing stop", "Breakeven size", "Max dist from open"};
+            headers.AddRange(TradesResult.GetHeaders());
+            var table = new List<List<string>>();
+
             for (int stop = startStop; stop <= endStop; stop += stopStep)
             for (int trStop = Math.Max(startTrStop, stop); trStop <= endTrStop; trStop += trStopStep)
             for (double breakevenSize = 0.0; breakevenSize <= 0.61; breakevenSize += 0.2)
@@ -79,9 +84,14 @@ namespace Tests
                                 breakevenSize.ToString(new CultureInfo("en-us")) + " maxDistFromOpen: " + maxDistFromOpen);
                 resultText.Add(result.ToString());
                 resultText.Add("");
+
+                var currentText = new List<string> { stop.ToString(), trStop.ToString(), breakevenSize.ToString(new CultureInfo("en-us")), maxDistFromOpen.ToString() };
+                currentText.AddRange(result.GetTableRow());
+                table.Add(currentText);
             }
 
             File.WriteAllLines("out.txt", resultText);
+            TablesWriter.PrintExcel("out.xls", headers, table);
         }
 
 		[TestCase("RTS-14", 900, 60, 0.15)]

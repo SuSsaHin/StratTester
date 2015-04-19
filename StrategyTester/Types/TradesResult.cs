@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -82,6 +83,22 @@ namespace StrategyTester.Types
 		{
 			get { return deals.Count(d => d.IsGood && !d.IsTrendLong); }
 		}
+
+	    public static List<string> GetHeaders()
+	    {
+            return new List<string>{"Good", "Bad", "Profit", "Volume", "Profit percent", 
+                                    "Max loss", "Max profit", "Max dropdown", "Max dropdown length", 
+                                    "Profit average", "Loss average", 
+                                    "Long good", "Short good"};
+	    }
+
+	    public List<string> GetTableRow()
+	    {
+            return new List<string>{GoodCount.ToString(), BadCount.ToString(), Profit.ToString(), Volume.ToString(), (100*Math.Round(Profit / (double) Volume, 3)).ToString(new CultureInfo("en-us")), 
+								MaxLoss.ToString(), MaxProfit.ToString(), MaxDropdown.ToString(), MaxDropdownLength.ToString(),
+								Math.Round(ProfitAverage, 2).ToString(new CultureInfo("en-us")), Math.Round(LossAverage, 2).ToString(new CultureInfo("en-us")), 
+                                LongGoodCount.ToString(), ShortGoodCount.ToString()};
+	    }
 
 		public override string ToString()
 		{

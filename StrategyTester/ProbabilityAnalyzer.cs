@@ -7,6 +7,45 @@ namespace StrategyTester
 {
 	public class ProbabilityAnalyzer
 	{
+        public static Tuple<int, int> TesCandlesHightAlternation(List<Candle> candles, int continuationLength, int averageDaysLength)
+        {
+            var candlesHeights = new Queue<int>(candles.Take(averageDaysLength).Select(candle => candle.InnerHeigth));
+            candles = candles.Skip(averageDaysLength).ToList();
+
+            int currentHighCount = 0;
+            int alternateCount = 0, continuationCount = 0;
+            foreach (var candle in candles)
+            {
+                int currentHeight = candle.InnerHeigth;
+                var averageHeight = candlesHeights.Average();
+
+                if (currentHighCount >= continuationLength)
+                {
+                    if (currentHeight >= averageHeight)
+                    {
+                        continuationCount++;
+                    }
+                    else
+                    {
+                        alternateCount++;
+                    }
+                }
+
+                if (currentHeight > averageHeight)
+                {
+                    currentHighCount++;
+                }
+                else
+                {
+                    currentHighCount = 0;
+                }
+
+                candlesHeights.Enqueue(currentHeight);
+                candlesHeights.Dequeue();
+            }
+
+            return new Tuple<int, int>(alternateCount, continuationCount);
+        }
 		public static double TestTrendFromNCandle(List<Day> days, int candleNumber)
 		{
 			double successCount = 0;
@@ -121,7 +160,7 @@ namespace StrategyTester
 			}
 			return Math.Atan(extremums.Average(ex => ex.Value - extremums.First().Value) / norm);
 		}
-	
+
 	#region Old
 		public static Tuple<int, int> TestTrendInvertion(List<Day> days, int length, int skippedCount)
 		{
