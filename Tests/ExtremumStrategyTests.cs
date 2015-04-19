@@ -53,6 +53,59 @@ namespace Tests
 			File.WriteAllLines("out.txt", resultText);
 		}
 
+        //[TestCase("RTS-15", 700, 1000, 100, 700, 1000, 100, 70)]
+        [TestCase("RTS-15", 600, 1000, 200, 600, 1000, 200, 1000, 4000, 500, 70)]
+        [TestCase("RTS-14", 600, 1000, 200, 600, 1000, 200, 1000, 4000, 500, 70)]
+        public static void TestCorrectedExtremums(string toolName, int startStop, int endStop, int stopStep,
+                                             int startTrStop, int endTrStop, int trStopStep,
+                                             int startMaxDistFromOpen, int endMaxDistFromOpen, int maxDistFromOpenStep,
+                                             int pegTopSize)
+        {
+            var repository = new HistoryRepository(toolName, false);
+            var resultText = new List<string>();
+
+            for (int stop = startStop; stop <= endStop; stop += stopStep)
+            for (int trStop = Math.Max(startTrStop, stop); trStop <= endTrStop; trStop += trStopStep)
+            for (double breakevenSize = 0.0; breakevenSize <= 0.61; breakevenSize += 0.2)
+            for (int maxDistFromOpen = startMaxDistFromOpen; maxDistFromOpen <= endMaxDistFromOpen; maxDistFromOpen += maxDistFromOpenStep)
+            {
+                var strat = new CorrectedExtremumStrategy(stop, pegTopSize, breakevenSize, trStop, maxDistFromOpen);
+
+                var result = strat.Run(repository.Days);
+                result.PrintDepo(@"depo\" + stop + "_" + trStop + "_" +
+                                    (100*breakevenSize).ToString(new CultureInfo("en-us")) + "_" + maxDistFromOpen + ".txt");
+
+                resultText.Add("stop: " + stop + " trailingStop: " + trStop + " breakevenSize: " +
+                                breakevenSize.ToString(new CultureInfo("en-us")) + " maxDistFromOpen: " + maxDistFromOpen);
+                resultText.Add(result.ToString());
+                resultText.Add("");
+            }
+
+            File.WriteAllLines("out.txt", resultText);
+        }
+
+		[TestCase("RTS-14", 900, 60, 0.15)]
+		[TestCase("RTS-3.15", 900, 60, 0.15)]
+		public static void TestTrailingCorrectedExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)
+		{
+			var repository = new HistoryRepository(toolName, false);
+			var resultText = new List<string>();
+
+			for (int trailingSize = 700; trailingSize <= 1800; trailingSize += 100)
+			{
+				var strat = new CorrectedExtremumStrategy(stopLoss, pegTopSize, breakevenSize, trailingSize);
+
+				var result = strat.Run(repository.Days);
+				result.PrintDepo(@"depo\" + trailingSize + ".txt");
+
+				resultText.Add(trailingSize.ToString());
+				resultText.Add(result.ToString());
+				resultText.Add("");
+			}
+
+			File.WriteAllLines("out.txt", resultText);
+		}
+
 		[TestCase("RTS-14", 900, 60, 0.15)]
 		[TestCase("RTS-3.15", 900, 60, 0.15)]
 		[TestCase("SI-14", 260, 0, 0.2)]
@@ -114,7 +167,7 @@ namespace Tests
 			var repository = new HistoryRepository(toolName, false);
 			var resultText = new List<string>();
 
-			var strat = new CorrectedExtremumStrategy(stopLoss, pegTopSize, breakevenSize);
+			var strat = new CorrectedExtremumStrategy(stopLoss, pegTopSize, breakevenSize, 900);
 
 			var result = strat.Run(repository.Days);
 			result.PrintDepo(@"depo\run.txt");

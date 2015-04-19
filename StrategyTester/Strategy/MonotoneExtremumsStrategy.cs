@@ -10,18 +10,21 @@ namespace StrategyTester.Strategy
 		private readonly int monotoneCount;
 		private readonly int invertCount;
 		private readonly TimeSpan lastTradeTime;
+		private const int norm = 50;
+		private readonly double minAngle = 0;
 
 		private readonly ExtremumsFinder finder;
 		private readonly StopLossManager stopLossManager;
 
-		public MonotoneExtremumsStrategy(int monotoneCount, int baseStopLoss, int invertCount, double breakevenPercent, TimeSpan? lastTradeTime = null)
+		public MonotoneExtremumsStrategy(int monotoneCount, int baseStopLoss, int invertCount, double breakevenPercent, 
+											TimeSpan? lastTradeTime = null, double breakevenInitializerPercent = 1)
 		{
 			this.monotoneCount = monotoneCount;
 			this.invertCount = invertCount;
 			this.lastTradeTime = lastTradeTime ?? new TimeSpan(23, 59, 59);
 
 			finder = new ExtremumsFinder(0);
-			stopLossManager = new StopLossManager(baseStopLoss, breakevenPercent, 1);
+			stopLossManager = new StopLossManager(baseStopLoss, breakevenPercent, breakevenInitializerPercent);
 		}
 
 		public TradesResult Run(List<Day> days)
@@ -85,22 +88,30 @@ namespace StrategyTester.Strategy
 			if (!AreMonotone(trendExtremums, monotoneCount, isTrendLong))
 				return 0;
 
+			var trendSlope = GetLineSlope(trendExtremums, monotoneCount);
+			var angle = Math.Atan(trendSlope);
+
+			if (Math.Abs(angle) < minAngle)
+				return 0;
+
 			if (unTrendExtremums.Count > 1)
 			{
+				var slope = GetLineSlope(unTrendExtremums, invertCount);
 
-				if (unTrendExtremums.Count > invertCount)
-				{
-					unTrendExtremums = unTrendExtremums.Skip(unTrendExtremums.Count - invertCount).ToList();
-				}
-				var avg = unTrendExtremums.Average(ex => ex.Value - unTrendExtremums.First().Value);
-
-				if (isTrendLong && avg < 0 || !isTrendLong && avg > 0)
+				if (isTrendLong && slope <= 0 || !isTrendLong && slope >= 0)
 					return 0;
 			}
-			/*if (AreMonotone(unTrendExtremums, invertCount, !isTrendLong))
-				return 0;*/
 
 			return isTrendLong ? 1 : -1;
+		}
+
+		private static double GetLineSlope(List<Extremum> extremums, int maxLineLength)
+		{
+			if (extremums.Count > maxLineLength)
+			{
+				extremums = extremums.Skip(extremums.Count - maxLineLength).ToList();
+			}
+			return extremums.Average(ex => ex.Value - extremums.First().Value) / norm;
 		}
 
 		private static bool AreMonotone(List<Extremum> extremums, int monotoneCount, bool isTrendLong)

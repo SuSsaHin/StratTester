@@ -15,6 +15,7 @@ namespace Tests
 		[TestCase("RTS-3.15", 900, 1400, 100)]
 		[TestCase("SI-14", 260, 1000, 100)]
 		[TestCase("SI-3.15", 350, 1000, 100)]
+		[TestCase("SBRF-14", 30, 150, 20)]
 		public static void OptimizeAll(string toolName, int startStop, int endStop, int stopStep)
 		{
 			var repository = new HistoryRepository(toolName, false);
@@ -22,7 +23,7 @@ namespace Tests
 			const double breakevenPercent = 0.15;
 			var lastTradeTime = new TimeSpan(15, 45, 00);
 
-			for (int monotoneCount = 3; monotoneCount <= 4; ++monotoneCount)
+			for (int monotoneCount = 2; monotoneCount <= 4; ++monotoneCount)
 			{
 				for (int invertCount = 2; invertCount <= monotoneCount; ++invertCount)
 				{
@@ -42,6 +43,40 @@ namespace Tests
 					}
 				}
 			}
+			File.WriteAllLines(@"mono\out.txt", resultText);
+		}
+
+		[TestCase("RTS-14", 500, 1000, 100)]
+		[TestCase("RTS-3.15", 900, 1400, 100)]
+		[TestCase("SI-14", 260, 1000, 100)]
+		[TestCase("SI-3.15", 350, 1000, 100)]
+		public static void OptimizeNotMain(string toolName, int startStop, int endStop, int stopStep)
+		{
+			var repository = new HistoryRepository(toolName, false);
+			var resultText = new List<string>();
+			const double breakevenPercent = 0.15;
+			var lastTradeTime = new TimeSpan(15, 45, 00);
+			const int monotoneCount = 4;
+			const int invertCount = 3;
+			const double stopPercent = 1;
+			//for (double stopPercent = 0.5; stopPercent < 1.6; stopPercent += 0.1)
+			//{
+				for (int stopLoss = startStop; stopLoss <= endStop; stopLoss += stopStep)
+				{
+					var strat = new MonotoneExtremumsStrategy(monotoneCount, stopLoss, invertCount, breakevenPercent, lastTradeTime, stopPercent);
+
+					var result = strat.Run(repository.Days);
+					result.PrintDepo(@"mono\depo\" + stopLoss + "_" + (int)(stopPercent*10) + ".txt");
+
+					if (result.DealsCount == 0)
+						continue;
+
+					resultText.Add(stopLoss + " " + stopPercent);
+					resultText.Add(result.ToString());
+					resultText.Add("");
+				}
+			//}
+
 			File.WriteAllLines(@"mono\out.txt", resultText);
 		}
 

@@ -36,6 +36,41 @@ namespace Tests
 		}
 
 		[TestCase("RTS-14")]
+		[TestCase("RTS-3.15")]
+		[TestCase("SBRF-14")]
+		[TestCase("SI-14")]
+		[TestCase("SI-3.15")]
+		public static void TestExtremumsContinuationFronAngle(string toolName)
+		{
+			const int maxCount = 15;
+			var repository = new HistoryRepository(toolName, false);
+
+			var result = new List<Tuple<int, int>>();
+			for (int monotoneCount = 2; monotoneCount < maxCount; ++monotoneCount)
+			{
+				result.Clear();
+				for (double minAngle = 0; minAngle < Math.PI/2; minAngle += 0.1)
+				{
+					int successCount = 0, failCount = 0;
+					foreach (var day in repository.Days)
+					{
+						var current = ProbabilityAnalyzer.TestExtremumsContinuationFromAngle(day.FiveMins, monotoneCount, minAngle, true);
+						successCount += current.Item1;
+						failCount += current.Item2;
+					}
+					if (failCount == 0)
+						failCount++;
+
+					result.Add(new Tuple<int, int>(successCount, failCount));
+				}
+				File.WriteAllLines("continProbs" + monotoneCount + ".txt",
+					result.ConvertAll(t => (t.Item1 + "\t" + t.Item2)));
+					//result.ConvertAll(t => (t.Item1/((double) t.Item2 + t.Item1)).ToString(new CultureInfo("en-us"))));
+			}
+			
+		}
+
+		[TestCase("RTS-14")]
 		[TestCase("SBRF-14")]
 		[TestCase("SI-14")]
 		public static void TestExtremumsContinuationLength(string toolName)
@@ -71,7 +106,7 @@ namespace Tests
 			//File.WriteAllLines("ClosesSber.txt", repository.Days.Select(day => day.Params.Close.ToString()));
 			var maxCount = repository.Days.Min(day => day.FiveMins.Count);
 			var result = new List<string>();
-			for (int i = 0; i < maxCount; ++i)
+			for (int i = 1; i < maxCount; ++i)
 			{
 				result.Add(ProbabilityAnalyzer.TestTrendFromNCandle(repository.Days, i).ToString(new CultureInfo("en-us")));
 			}

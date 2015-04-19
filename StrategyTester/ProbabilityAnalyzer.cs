@@ -12,7 +12,7 @@ namespace StrategyTester
 			double successCount = 0;
 			foreach (var day in days)
 			{
-				if (Math.Sign(day.FiveMins[candleNumber].Close - day.Params.Open) == Math.Sign(day.Params.Close - day.FiveMins[candleNumber].Close))
+				if (Math.Sign(day.FiveMins[candleNumber].Close - day.FiveMins[1].Open) == Math.Sign(day.Params.Close - day.FiveMins[candleNumber].Close))
 				{
 					++successCount;
 				}
@@ -52,6 +52,38 @@ namespace StrategyTester
 			return new Tuple<int, int>(successCount, failCount);
 		}
 
+		public static Tuple<int, int> TestExtremumsContinuationFromAngle(List<Candle> candles, int monotoneCount, double minAngle, bool isMinimums)
+		{
+			var finder = new ExtremumsFinder(0);
+			var extremums = finder.FindFirstExtremums(candles, isMinimums);
+
+			int successCount = 0, failCount = 0;
+
+			int currentMonotoneCount = 0;
+			for (int i = 1; i < extremums.Count; ++i)
+			{
+				//var currentSign = Math.Sign(extremums[i].Value - extremums[i - 1].Value);
+				bool currentTrend = extremums[i].Value > extremums[i - 1].Value;
+				if (currentTrend == isMinimums)
+				{
+					currentMonotoneCount++;
+					if (currentMonotoneCount >= monotoneCount && Math.Abs(GetLineAngle(extremums, monotoneCount)) > minAngle)
+					{
+						successCount++;
+					}
+				}
+				else
+				{
+					if (currentMonotoneCount >= monotoneCount && Math.Abs(GetLineAngle(extremums, monotoneCount)) > minAngle)
+					{
+						failCount++;
+					}
+					currentMonotoneCount = 0;
+				}
+			}
+			return new Tuple<int, int>(successCount, failCount);
+		}
+
 		public static List<int> TestExtremumsContinuationLength(List<Candle> candles, int monotoneCount, bool isMinimums)
 		{
 			var finder = new ExtremumsFinder(0);
@@ -79,6 +111,17 @@ namespace StrategyTester
 			}
 			return lengths;
 		}
+
+		private static double GetLineAngle(List<Extremum> extremums, int maxLineLength)
+		{
+			const int norm = 50;
+			if (extremums.Count > maxLineLength)
+			{
+				extremums = extremums.Skip(extremums.Count - maxLineLength).ToList();
+			}
+			return Math.Atan(extremums.Average(ex => ex.Value - extremums.First().Value) / norm);
+		}
+	
 	#region Old
 		public static Tuple<int, int> TestTrendInvertion(List<Day> days, int length, int skippedCount)
 		{

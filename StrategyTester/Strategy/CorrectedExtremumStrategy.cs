@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using StrategyTester.Types;
 
@@ -8,11 +9,14 @@ namespace StrategyTester.Strategy
 	{
 		private readonly ExtremumsFinder extremumsFinder;
 		private readonly StopLossManager stopLossManager;
+	    private readonly int maxDistFromOpen;
+	    public int MaxDistBreakCounter = 0;
 
-		public CorrectedExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent)
+		public CorrectedExtremumStrategy(int baseStopLoss, int pegTopSize, double breakevenPercent, int trailingStopSize, int maxDistFromOpen = int.MaxValue)
 		{
 			extremumsFinder = new ExtremumsFinder(pegTopSize);
-			stopLossManager = new StopLossManager(baseStopLoss, breakevenPercent);
+			stopLossManager = new StopLossManager(baseStopLoss, trailingStopSize, breakevenPercent);
+		    this.maxDistFromOpen = maxDistFromOpen;
 		}
 
 		public TradesResult Run(List<Day> days)
@@ -45,11 +49,19 @@ namespace StrategyTester.Strategy
 				var startCandle = daysCandles[startIndex + 1];
 				var startPrice = startCandle.Open;
 
-				bool isTrendLong = startPrice > daysCandles.First().Open;
+			    var distFromOpen = startPrice - daysCandles.First().Open;
+			    bool isTrendLong = distFromOpen > 0;
 				if (isTrendLong != extremum.IsMinimum)
 					continue;
 
-				var stopResult = stopLossManager.GetBreakevenStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
+                if (Math.Abs(distFromOpen) > maxDistFromOpen)
+                {
+                    MaxDistBreakCounter++;
+                    return null;
+                }
+
+                var stopResult = stopLossManager.GetTrailingStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
+				//var stopResult = stopLossManager.GetBreakevenStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
 
 				var endPrice = stopResult != -1 ? stopResult : daysCandles[daysCandles.Count - 1].Close;
 
