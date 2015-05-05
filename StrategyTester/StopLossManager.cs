@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using StrategyTester.Types;
 
@@ -95,7 +96,62 @@ namespace StrategyTester
 			return -1;
 		}
 
-		public int GetDynamicStopLoss(int startPrice, bool isTrendLong, Extremum extremum)
+        public int GetTrailingStopResult(List<Candle> candles, int startIndex, bool isTrendLong, IEnumerable<Extremum> extremums)
+        {
+            int stopLoss = baseStopLoss;
+            //var extremumsQueue = new Queue<Extremum>(extremums);
+
+            int startPrice = candles[startIndex+1].Open;
+
+            for (int i = startIndex + 1; i < candles.Count; ++i)
+            {
+                var candle = candles[i];
+                if (isTrendLong && candle.Low <= startPrice - stopLoss)
+                    return startPrice - stopLoss;
+
+                if (!isTrendLong && candle.High >= startPrice + stopLoss)
+                    return startPrice + stopLoss;
+
+                //if (isTrendLong && candle.Close <= startPrice || !isTrendLong && candle.Close >= startPrice)
+                //{
+                //    if (CheckExtremum(isTrendLong, i, extremumsQueue, candles))
+                //    {
+                //        return candle.Close;
+                //    }
+                //}
+
+                if (stopLoss > -breakevenSize)
+                {
+                    stopLoss = GetBreakeven(isTrendLong, candle, startPrice);
+                }
+
+                var newStopLoss = (isTrendLong ? startPrice - candle.High : candle.Low - startPrice) + trailingSize;
+                if (newStopLoss > 0 || newStopLoss > stopLoss)
+                    continue;
+
+                stopLoss = newStopLoss;
+            }
+
+            return -1;
+        }
+
+        private bool CheckExtremum(bool isTrendLong, int candleIndex, Queue<Extremum> extremums, List<Candle> candles)
+	    {
+	        if (!extremums.Any() || candleIndex < extremums.First().CheckerIndex)
+	        {
+	            return false;
+	        }
+
+            var extremum = extremums.Dequeue();
+//            if (candleIndex != extremum.CheckerIndex)
+//            {
+//                return false;
+//            }
+
+            return extremum.IsMinimum != isTrendLong;
+	    }
+
+	    public int GetDynamicStopLoss(int startPrice, bool isTrendLong, Extremum extremum)
 		{
 			const double maxStopRatio = 1.5;
 			var dist = -(isTrendLong ? extremum.Value - startPrice : startPrice - extremum.Value);

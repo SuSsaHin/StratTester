@@ -6,7 +6,7 @@ using StrategyTester.Utils;
 
 namespace StrategyTester
 {
-	class ExtremumsFinder
+    public class ExtremumsFinder
 	{
 		private readonly int pegTopSize;
 
@@ -22,6 +22,7 @@ namespace StrategyTester
 			{
 				var leftCandle = candles[leftIndex];
 				var midIndex = candles.FindIndex(leftIndex + 1, c => !c.IsOuter(leftCandle));
+//                var midIndex = candles.FindIndex(leftIndex + 1, c => !leftCandle.IsOuter(c) && !leftCandle.IsInner(c));
 				if (midIndex == -1)
 					continue;
 
@@ -31,7 +32,8 @@ namespace StrategyTester
 					continue;
 
 				var rightIndex = candles.FindIndex(midIndex + 1, c => !c.IsInner(midCandle));
-				if (rightIndex == -1)
+//                var rightIndex = candles.FindIndex(midIndex + 1, c => !midCandle.IsInner(c) && !midCandle.IsOuter(c));
+                if (rightIndex == -1)
 					continue;
 
 				var rightCandle = candles[rightIndex];

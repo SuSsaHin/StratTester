@@ -24,10 +24,17 @@ namespace StrategyTester.Strategy
 
 			foreach (var day in days)
 			{
+			    var dt = new DateTime(2014, 07, 09);
+			    if (day.Params.Date == dt)
+			    {
+			        int a = 0;
+			    }
 				var profit = GetDaysDeal(day.FiveMins);
 
 				if (profit == null)
 					continue;
+
+                profit = GetDaysDeal(day.FiveMins);
 
 				result.AddDeal(profit);
 			}
@@ -56,11 +63,11 @@ namespace StrategyTester.Strategy
                 if (Math.Abs(distFromOpen) > maxDistFromOpen)
                     return null;
 
-                var stopResult = stopLossManager.GetTrailingStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
-
+                var stopResult = stopLossManager.GetTrailingStopResult(daysCandles, startIndex, isTrendLong, allExtremums.SkipWhile(ex => ex.CheckerIndex <= startIndex).ToList());
+//                var stopResult = stopLossManager.GetTrailingStopResult(daysCandles.Skip(startIndex + 1), isTrendLong);
 				var endPrice = stopResult != -1 ? stopResult : daysCandles[daysCandles.Count - 1].Close;
 
-				return new Deal(startPrice, endPrice, isTrendLong);
+				return new Deal(startPrice, endPrice, isTrendLong, startCandle.DateTime);
 			}
 			return null;
 		}

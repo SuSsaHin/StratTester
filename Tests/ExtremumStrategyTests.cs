@@ -94,6 +94,36 @@ namespace Tests
             TablesWriter.PrintExcel("out.xls", headers, table);
         }
 
+        [TestCase("RTS-15", 600, 1000, 200, 600, 1000, 200, 70)]
+        [TestCase("RTS-14", 600, 1000, 200, 600, 1000, 200, 70)]
+        [TestCase("RTS-14", 600, 600,  200, 800, 800,  200, 70)]
+        public static void TestCorrectedExtremumsFast(string toolName, int startStop, int endStop, int stopStep,
+                                             int startTrStop, int endTrStop, int trStopStep, int pegTopSize)
+        {
+            var repository = new HistoryRepository(toolName, false);
+
+            var headers = new List<string> { "Stop", "Trailing stop", "Breakeven size"};
+            headers.AddRange(TradesResult.GetHeaders());
+            var table = new List<List<string>>();
+
+            for (int stop = startStop; stop <= endStop; stop += stopStep)
+            for (int trStop = Math.Max(startTrStop, stop); trStop <= endTrStop; trStop += trStopStep)
+            for (double breakevenSize = 0.0; breakevenSize <= 0.61; breakevenSize += 0.2)
+            {
+                var strat = new CorrectedExtremumStrategy(stop, pegTopSize, breakevenSize, trStop);
+
+                var result = strat.Run(repository.Days);
+                result.PrintDepo(@"depo\" + stop + "_" + trStop + "_" +
+                                    (100 * breakevenSize).ToString(new CultureInfo("en-us")) + ".txt");
+
+                var currentText = new List<string> { stop.ToString(), trStop.ToString(), breakevenSize.ToString(new CultureInfo("en-us")) };
+                currentText.AddRange(result.GetTableRow());
+                table.Add(currentText);
+            }
+
+            TablesWriter.PrintExcel("out.xlsx", headers, table);
+        }
+
 		[TestCase("RTS-14", 900, 60, 0.15)]
 		[TestCase("RTS-3.15", 900, 60, 0.15)]
 		public static void TestTrailingCorrectedExtremums(string toolName, int stopLoss, int pegTopSize, double breakevenSize)

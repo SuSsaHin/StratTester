@@ -10,8 +10,8 @@ namespace StrategyTester.Types
 	{
 		private readonly List<Deal> deals = new List<Deal>();
 
-		private int currentSag;
-		private int currentSagLength;
+		private int currentDropdown;
+		private int currentDropdownLength;
 
 		public int MaxDropdown { get; private set; }
 		public int MaxDropdownLength { get; private set; }
@@ -112,18 +112,22 @@ namespace StrategyTester.Types
 
 		public void AddDeal(Deal deal)
 		{
+            if (currentDropdownLength == 7)
+            {
+                int a = 0;
+            }
 			if (deal.IsGood)
 			{
-				MaxDropdown = Math.Max(MaxDropdown, currentSag);
-				currentSag = 0;
+				MaxDropdown = Math.Max(MaxDropdown, currentDropdown);
+				currentDropdown = 0;
 
-				MaxDropdownLength = Math.Max(MaxDropdownLength, currentSagLength);
-				currentSagLength = 0;
+				MaxDropdownLength = Math.Max(MaxDropdownLength, currentDropdownLength);
+                currentDropdownLength = 0;
 			}
 			else
 			{
-				currentSag -= deal.Profit;
-				currentSagLength++;
+				currentDropdown -= deal.Profit;
+				currentDropdownLength++;
 			}
 
 			deals.Add(deal);

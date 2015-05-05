@@ -37,12 +37,21 @@ namespace StrategyTester.Utils
             excelApp.Columns.AutoFit();
 
             File.Delete(fullFileName);
-            workBook.SaveAs(fullFileName);
-            workBook.Close(false);
 
-            workBook = null;
-            excelApp = null;
-            GC.Collect();
+            try
+            {
+                workBook.SaveAs(fullFileName);
+            }
+            finally 
+            {
+                workBook.Close(false);
+
+                excelApp.Quit();
+
+                workBook = null;
+                excelApp = null;
+                GC.Collect();
+            }
         }
     }
 }

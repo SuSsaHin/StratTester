@@ -2,7 +2,7 @@
 
 namespace StrategyTester.Types
 {
-	class Extremum
+    public class Extremum
 	{
 		public readonly DateTime Date;
 		public int Value { get; private set; }
@@ -19,5 +19,10 @@ namespace StrategyTester.Types
 			IsMinimum = isMinimum;
 			CanBeSecond = true;
 		}
+
+        public override string ToString()
+        {
+            return Date + " (" + CheckerIndex +  "): " + Value + ", " + (IsMinimum ? "min" : "max") + ", " + (CanBeSecond ? "Can be second" : "Can't be second");
+        }
 	}
 }

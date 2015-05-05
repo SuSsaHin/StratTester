@@ -16,7 +16,7 @@ namespace StrategyTester.Types
 			this(isTrendLong ? endPrice - startPrice : startPrice - endPrice, isTrendLong)
 		{}
 
-		public Deal(int startPrice, int endPrice, bool isTrendLong, DateTime start, int extremumIndex):
+		public Deal(int startPrice, int endPrice, bool isTrendLong, DateTime start, int extremumIndex = 0):
 			this(startPrice, endPrice, isTrendLong)
 		{
 			Start = start;
