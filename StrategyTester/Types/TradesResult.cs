@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using StrategyTester.Utils;
 
 namespace StrategyTester.Types
 {
@@ -10,12 +11,19 @@ namespace StrategyTester.Types
 	{
 		private readonly List<Deal> deals = new List<Deal>();
 
-		private int currentDropdown;
-		private int currentDropdownLength;
+		private const int StartDepoSize = 30000;
 
-		public int MaxDropdown { get; private set; }
+		private int globalMaximumIndex;
+
+		private int depoSize = StartDepoSize;
+		private int maxDepoSize = StartDepoSize;
+
+		public double MaxDropdown { get; private set; }
 		public int MaxDropdownLength { get; private set; }
-
+		public int Profit 
+		{
+			get { return deals.Sum(d => d.Profit); } 
+		}
 		public int DealsCount { get { return deals.Count; } }
 
 		public int GoodCount 
@@ -26,11 +34,6 @@ namespace StrategyTester.Types
 		public int BadCount
 		{
 			get { return deals.Count(d => !d.IsGood); }
-		}
-
-		public int Profit
-		{
-			get { return deals.Sum(d => d.Profit); }
 		}
 
 		public int Volume
@@ -94,9 +97,9 @@ namespace StrategyTester.Types
 
 	    public List<string> GetTableRow()
 	    {
-            return new List<string>{GoodCount.ToString(), BadCount.ToString(), Profit.ToString(), Volume.ToString(), (100*Math.Round(Profit / (double) Volume, 3)).ToString(new CultureInfo("en-us")), 
-								MaxLoss.ToString(), MaxProfit.ToString(), MaxDropdown.ToString(), MaxDropdownLength.ToString(),
-								Math.Round(ProfitAverage, 2).ToString(new CultureInfo("en-us")), Math.Round(LossAverage, 2).ToString(new CultureInfo("en-us")), 
+            return new List<string>{GoodCount.ToString(), BadCount.ToString(), Profit.ToString(), Volume.ToString(), (100*Math.Round(Profit / (double) Volume, 3)).ToEnString(), 
+								MaxLoss.ToString(), MaxProfit.ToString(), Math.Round(MaxDropdown, 2).ToEnString(), MaxDropdownLength.ToString(),
+								Math.Round(ProfitAverage, 2).ToEnString(), Math.Round(LossAverage, 2).ToEnString(), 
                                 LongGoodCount.ToString(), ShortGoodCount.ToString()};
 	    }
 
@@ -106,31 +109,27 @@ namespace StrategyTester.Types
 								 "Max loss: {5}, Max profit: {6}, Max dropdown: {7}, Max dropdown length: {8},\n" +
 			                     "Profit average: {9}, Loss average: {10}, Long good: {11}, short good: {12}", 
 								GoodCount, BadCount, Profit, Volume, 100*Math.Round(Profit / (double) Volume, 3), 
-								MaxLoss, MaxProfit, MaxDropdown, MaxDropdownLength,
+								MaxLoss, MaxProfit, Math.Round(MaxDropdown, 2), MaxDropdownLength,
 								Math.Round(ProfitAverage, 2), Math.Round(LossAverage, 2), LongGoodCount, ShortGoodCount);
 		}
 
 		public void AddDeal(Deal deal)
 		{
-            if (currentDropdownLength == 7)
-            {
-                int a = 0;
-            }
-			if (deal.IsGood)
-			{
-				MaxDropdown = Math.Max(MaxDropdown, currentDropdown);
-				currentDropdown = 0;
+			deals.Add(deal);
 
-				MaxDropdownLength = Math.Max(MaxDropdownLength, currentDropdownLength);
-                currentDropdownLength = 0;
+			depoSize += deal.Profit;
+			if (depoSize >= maxDepoSize)
+			{
+				maxDepoSize = depoSize;
+				globalMaximumIndex = deals.Count - 1;
 			}
 			else
 			{
-				currentDropdown -= deal.Profit;
-				currentDropdownLength++;
+				double currentDropdown = 100 * (maxDepoSize - depoSize) / (double)(maxDepoSize);
+				int currentDropdownLength = deals.Count - 1 - globalMaximumIndex;
+				MaxDropdown = Math.Max(currentDropdown, MaxDropdown);
+				MaxDropdownLength = Math.Max(currentDropdownLength, MaxDropdownLength);
 			}
-
-			deals.Add(deal);
 		}
 
 		public void PrintDeals()

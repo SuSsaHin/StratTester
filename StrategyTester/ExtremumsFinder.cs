@@ -45,16 +45,47 @@ namespace StrategyTester
 					continue;
 
 				var extremum = new Extremum(isMinimum ? midCandle.Low : midCandle.High, rightIndex, midCandle.Date + midCandle.Time, isMinimum);
-				if (extremums.Any() && extremums[extremums.Count - 1].Date == extremum.Date)
+
+			    var insertIndex = extremums.FindIndex(c => c.CheckerIndex >= rightIndex);
+
+				if (insertIndex == -1)
 				{
-					extremums[extremums.Count - 1].CanBeSecond = false;
-					continue;
+					if (!extremums.Any() || extremums[extremums.Count - 1].Date < extremum.Date)
+					{
+						extremums.Add(extremum);
+					}
+				}
+				else if (extremums[insertIndex].Date <= extremum.Date)
+				{
+					while (insertIndex < extremums.Count && extremums[insertIndex].Date <= extremum.Date)
+					{
+						extremums.RemoveAt(insertIndex);
+					}
+					extremums.Insert(insertIndex, extremum);
+				}
+				else if (insertIndex == 0 || extremums[insertIndex - 1].Date < extremum.Date)
+				{
+					extremums.Insert(insertIndex, extremum);
 				}
 
-				if (extremums.Any() && extremums[extremums.Count - 1].Date > extremum.Date)
-					continue;
+//			    if (insertIndex == -1 && (!extremums.Any() || extremums.Last().Date < extremum.Date))
+//			    {
+//			        extremums.Add(extremum);
+//			    }
+//                else if (extremums[insertIndex].Date > extremum.Date && (insertIndex == 0 || extremums[insertIndex - 1].Date < extremum.Date))
+//			    {
+//			        extremums.Insert(insertIndex, extremum);
+//			    }
+//				if (extremums.Any() && extremums[extremums.Count - 1].Date == extremum.Date)
+//				{
+//					extremums[extremums.Count - 1].CanBeSecond = false;
+//					continue;
+//				}
+//
+//				if (extremums.Any() && extremums[extremums.Count - 1].Date > extremum.Date)
+//					continue;
 
-				extremums.Add(extremum);
+//				extremums.Add(extremum);
 			}
 
 			return extremums;

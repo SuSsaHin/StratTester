@@ -37,7 +37,7 @@ namespace Tests
 						var strat = new ExtremumStrategy(stop, pegTopSize, breakevenSize);
 
 						var result = strat.Run(repository.Days);
-						result.PrintDepo(@"depo\" + stop + "_" + pegTopSize + "_" + (100*breakevenSize).ToString(new CultureInfo("en-us")) + ".txt");
+						result.PrintDepo(@"depo\" + stop.ToString("D4") + "_" + pegTopSize + "_" + ((int)(100 * breakevenSize)).ToString("D2") + ".txt");
 
 						resultText.Add("stop: " + stop + " pegTopSize: " + pegTopSize + " breakevenSize: " + breakevenSize.ToString(new CultureInfo("en-us")));
 						resultText.Add(result.ToString());
@@ -63,7 +63,6 @@ namespace Tests
                                              int pegTopSize)
         {
             var repository = new HistoryRepository(toolName, false);
-            var resultText = new List<string>();
 
             var headers = new List<string> {"Stop", "Trailing stop", "Breakeven size", "Max dist from open"};
             headers.AddRange(TradesResult.GetHeaders());
@@ -77,21 +76,15 @@ namespace Tests
                 var strat = new CorrectedExtremumStrategy(stop, pegTopSize, breakevenSize, trStop, maxDistFromOpen);
 
                 var result = strat.Run(repository.Days);
-                result.PrintDepo(@"depo\" + stop + "_" + trStop + "_" +
-                                    (100*breakevenSize).ToString(new CultureInfo("en-us")) + "_" + maxDistFromOpen + ".txt");
+                result.PrintDepo(@"depo\" + stop.ToString("D4") + "_" + trStop.ToString("D4") + "_" +
+                                    ((int)(100*breakevenSize)).ToString("D2") + "_" + maxDistFromOpen + ".txt");
 
-                resultText.Add("stop: " + stop + " trailingStop: " + trStop + " breakevenSize: " +
-                                breakevenSize.ToString(new CultureInfo("en-us")) + " maxDistFromOpen: " + maxDistFromOpen);
-                resultText.Add(result.ToString());
-                resultText.Add("");
-
-                var currentText = new List<string> { stop.ToString(), trStop.ToString(), breakevenSize.ToString(new CultureInfo("en-us")), maxDistFromOpen.ToString() };
+                var currentText = new List<string> { stop.ToString(), trStop.ToString(), breakevenSize.ToEnString(), maxDistFromOpen.ToString() };
                 currentText.AddRange(result.GetTableRow());
                 table.Add(currentText);
             }
 
-            File.WriteAllLines("out.txt", resultText);
-            TablesWriter.PrintExcel("out.xls", headers, table);
+            TablesWriter.PrintExcel("out.xlsx", headers, table);
         }
 
         [TestCase("RTS-15", 600, 1000, 200, 600, 1000, 200, 70)]
@@ -113,10 +106,10 @@ namespace Tests
                 var strat = new CorrectedExtremumStrategy(stop, pegTopSize, breakevenSize, trStop);
 
                 var result = strat.Run(repository.Days);
-                result.PrintDepo(@"depo\" + stop + "_" + trStop + "_" +
-                                    (100 * breakevenSize).ToString(new CultureInfo("en-us")) + ".txt");
+                result.PrintDepo(@"depo\" + stop.ToString("D4") + "_" + trStop.ToString("D4") + "_" +
+									((int)(100 * breakevenSize)).ToString("D2") + ".txt");
 
-                var currentText = new List<string> { stop.ToString(), trStop.ToString(), breakevenSize.ToString(new CultureInfo("en-us")) };
+                var currentText = new List<string> { stop.ToString(), trStop.ToString(), breakevenSize.ToEnString() };
                 currentText.AddRange(result.GetTableRow());
                 table.Add(currentText);
             }

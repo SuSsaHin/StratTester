@@ -24,11 +24,6 @@ namespace StrategyTester.Strategy
 
 			foreach (var day in days)
 			{
-			    var dt = new DateTime(2014, 07, 09);
-			    if (day.Params.Date == dt)
-			    {
-			        int a = 0;
-			    }
 				var profit = GetDaysDeal(day.FiveMins);
 
 				if (profit == null)
